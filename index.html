@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///Users/jacheflin/Downloads/index_3.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RISE Marketing Command Center</title>
 <style>
@@ -708,7 +708,7 @@
     <div style="font-size:13px;color:#7a9aaa;margin-bottom:28px">RISE Residential · Sign in to continue</div>
     <div class="form-group" style="margin-bottom:12px">
       <label>Email address</label>
-      <input type="email" id="auth-email" placeholder="you@riseresidential.com" style="font-size:14px" onkeydown="if(event.key===&#39;Enter&#39;)handleSignIn()">
+      <input type="email" id="auth-email" placeholder="you@riseresidential.com" style="font-size:14px" onkeydown="if(event.key==='Enter')handleSignIn()">
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="handleSignIn()" id="auth-btn">
       Send Magic Link
@@ -732,7 +732,7 @@
     </div>
   </div>
   <div class="header-right">
-    <div class="notif-btn" onclick="showToast(&#39;3 approvals waiting for action&#39;,&#39;warn&#39;)">
+    <div class="notif-btn" onclick="showToast('3 approvals waiting for action','warn')">
       🔔<div class="notif-dot"></div>
     </div>
     <div class="user-pill" onclick="cycleUser()" title="Click to sign out" oncontextmenu="event.preventDefault();signOut()">
@@ -744,15 +744,15 @@
 
 <!-- NAV -->
 <div class="nav">
-  <button class="nav-tab active" onclick="showTab(&#39;dashboard&#39;)">Dashboard</button>
-  <button class="nav-tab" onclick="showTab(&#39;new-request&#39;)">➕ New Request</button>
-  <button class="nav-tab" onclick="showTab(&#39;tickets&#39;)">🎫 All Tickets <span class="nav-badge" id="ticketCount">7</span></button>
-  <button class="nav-tab" onclick="showTab(&#39;approvals&#39;)">✅ Approvals <span class="nav-badge" id="approvalCount">3</span></button>
-  <button class="nav-tab" onclick="showTab(&#39;lead-sources&#39;)">📈 Lead Sources</button>
-  <button class="nav-tab" onclick="showTab(&#39;metrics&#39;)">⚡ Team Metrics</button>
-  <button class="nav-tab" onclick="showTab(&#39;reporting&#39;)">📊 Reporting</button>
-  <button class="nav-tab" id="bonus-tab" onclick="showTab(&#39;bonus&#39;)" style="display:none">🏆 Bonus</button>
-  <button class="nav-tab" onclick="showTab(&#39;settings&#39;)">⚙️ Settings</button>
+  <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="nav-tab" onclick="showTab('new-request')">➕ New Request</button>
+  <button class="nav-tab" onclick="showTab('tickets')">🎫 All Tickets <span class="nav-badge" id="ticketCount">7</span></button>
+  <button class="nav-tab" onclick="showTab('approvals')">✅ Approvals <span class="nav-badge" id="approvalCount">3</span></button>
+  <button class="nav-tab" onclick="showTab('lead-sources')">📈 Lead Sources</button>
+  <button class="nav-tab" onclick="showTab('metrics')">⚡ Team Metrics</button>
+  <button class="nav-tab" onclick="showTab('reporting')">📊 Reporting</button>
+  <button class="nav-tab" id="bonus-tab" onclick="showTab('bonus')" style="display:none">🏆 Bonus</button>
+  <button class="nav-tab" onclick="showTab('settings')">⚙️ Settings</button>
 </div>
 
 <!-- MAIN -->
@@ -765,43 +765,43 @@
         <div class="section-title">Marketing Health Overview</div>
         <div class="section-sub">Tuesday, June 16, 2026 · Portfolio-wide</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="showTab(&#39;new-request&#39;)">+ New Request</button>
+      <button class="btn btn-primary btn-sm" onclick="showTab('new-request')">+ New Request</button>
     </div>
 
-    <div class="alert-bar">
-      ⚠️ <strong>3 approvals</strong> are waiting on GMs or Regionals — properties at risk of delay: Nocatee, GKP, Viera
+    <div id="dashboard-alert" style="display:none" class="alert-bar">
+      ⚠️ <span id="dashboard-alert-text"></span>
     </div>
 
     <!-- STAT CARDS -->
     <div class="stat-grid">
-      <div class="stat-card" onclick="showTab(&#39;tickets&#39;)" style="cursor:pointer;transition:box-shadow 0.15s,transform 0.1s" onmouseenter="this.style.boxShadow=&#39;0 4px 16px rgba(1,62,81,0.15)&#39;;this.style.transform=&#39;translateY(-2px)&#39;" onmouseleave="this.style.boxShadow=&#39;&#39;;this.style.transform=&#39;&#39;">
+      <div class="stat-card" onclick="showTab('tickets')" style="cursor:pointer;transition:box-shadow 0.15s,transform 0.1s" onmouseenter="this.style.boxShadow='0 4px 16px rgba(1,62,81,0.15)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.boxShadow='';this.style.transform=''">
         <div class="stat-label" style="display:flex;justify-content:space-between;align-items:center">Open Tickets <span style="font-size:10px;color:var(--rise-light);font-weight:600;text-transform:none;letter-spacing:0">View all →</span></div>
-        <div class="stat-value">7</div>
-        <div class="stat-sub">↑ 2 from last week</div>
+        <div class="stat-value" id="stat-open-tickets">—</div>
+        <div class="stat-sub" id="stat-open-sub">Loading...</div>
       </div>
-      <div class="stat-card" onclick="showTab(&#39;approvals&#39;)" style="cursor:pointer;transition:box-shadow 0.15s,transform 0.1s" onmouseenter="this.style.boxShadow=&#39;0 4px 16px rgba(1,62,81,0.15)&#39;;this.style.transform=&#39;translateY(-2px)&#39;" onmouseleave="this.style.boxShadow=&#39;&#39;;this.style.transform=&#39;&#39;">
+      <div class="stat-card" onclick="showTab('approvals')" style="cursor:pointer;transition:box-shadow 0.15s,transform 0.1s" onmouseenter="this.style.boxShadow='0 4px 16px rgba(1,62,81,0.15)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.boxShadow='';this.style.transform=''">
         <div class="stat-label" style="display:flex;justify-content:space-between;align-items:center">Awaiting Approval <span style="font-size:10px;color:#d47b1a;font-weight:600;text-transform:none;letter-spacing:0">Action needed →</span></div>
-        <div class="stat-value stat-warn">3</div>
-        <div class="stat-sub">GMs &amp; Regionals pending</div>
+        <div class="stat-value stat-warn" id="stat-approvals">—</div>
+        <div class="stat-sub">GMs & Regionals pending</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Avg Completion</div>
-        <div class="stat-value">3.2d</div>
-        <div class="stat-sub stat-up">↓ 0.8d vs last month</div>
+        <div class="stat-value" id="stat-avg-completion">—</div>
+        <div class="stat-sub">Marketing team time</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">On-Time Rate</div>
-        <div class="stat-value stat-up">94%</div>
+        <div class="stat-value stat-up" id="stat-ontime">—</div>
         <div class="stat-sub">Last 30 days</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Budget Tracked</div>
-        <div class="stat-value">$42,180</div>
+        <div class="stat-value" id="stat-budget">—</div>
         <div class="stat-sub">Portfolio MTD spend</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Lead Source ROI</div>
-        <div class="stat-value stat-up">↑ ILS</div>
+        <div class="stat-value stat-up" id="stat-lead-roi">—</div>
         <div class="stat-sub">Top source this month</div>
       </div>
     </div>
@@ -898,59 +898,15 @@
 
     <!-- RECENT TICKETS -->
     <div class="card" style="margin-top:16px">
-      <div class="card-title">Active Tickets <button class="btn btn-secondary btn-sm" onclick="showTab(&#39;tickets&#39;)" style="font-weight:500;font-size:11px">View all →</button></div>
+      <div class="card-title">Active Tickets <button class="btn btn-secondary btn-sm" onclick="showTab('tickets')" style="font-weight:500;font-size:11px">View all →</button></div>
       <table class="ticket-table">
         <thead>
           <tr>
             <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Due</th>
           </tr>
         </thead>
-        <tbody>
-          <tr onclick="openTicket(&#39;MCC-0047&#39;)">
-            <td><span class="ticket-id">MCC-0047</span></td>
-            <td><span class="ticket-title">Spring move-in Instagram reel</span></td>
-            <td><span class="ticket-prop">GKP</span></td>
-            <td><span class="tag">Social</span></td>
-            <td><div class="assignee av-renee" title="Renee">RE</div></td>
-            <td><span class="badge badge-approval">⏳ Awaiting Approval</span></td>
-            <td style="color:#d47b1a;font-weight:600">Jun 17</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0046&#39;)">
-            <td><span class="ticket-id">MCC-0046</span></td>
-            <td><span class="ticket-title">Promo tote bag order — Ivy &amp; Elm</span></td>
-            <td><span class="ticket-prop">Viera</span></td>
-            <td><span class="tag">Swag</span></td>
-            <td><div class="assignee av-maya" title="Maya">MA</div></td>
-            <td><span class="badge badge-approval">⏳ Awaiting Approval</span></td>
-            <td style="color:#e85c4a;font-weight:600">Jun 16</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0045&#39;)">
-            <td><span class="ticket-id">MCC-0045</span></td>
-            <td><span class="ticket-title">Google Ads refresh — Q3</span></td>
-            <td><span class="ticket-prop">Nocatee</span></td>
-            <td><span class="tag">Ads</span></td>
-            <td><div class="assignee av-york" title="York">YK</div></td>
-            <td><span class="badge badge-inprogress">🔄 In Progress</span></td>
-            <td>Jun 20</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0044&#39;)">
-            <td><span class="ticket-id">MCC-0044</span></td>
-            <td><span class="ticket-title">Website copy update — pet policy</span></td>
-            <td><span class="ticket-prop">Bartram</span></td>
-            <td><span class="tag">Website</span></td>
-            <td><div class="assignee av-jordan" title="Jordan">JO</div></td>
-            <td><span class="badge badge-review">👁 In Review</span></td>
-            <td>Jun 22</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0043&#39;)">
-            <td><span class="ticket-id">MCC-0043</span></td>
-            <td><span class="ticket-title">Student deal flyer — fall semester</span></td>
-            <td><span class="ticket-prop">Maple Hall (NJIT)</span></td>
-            <td><span class="tag">Print</span></td>
-            <td><div class="assignee av-renee" title="Renee">RE</div></td>
-            <td><span class="badge badge-new">🆕 New</span></td>
-            <td>Jun 25</td>
-          </tr>
+        <tbody id="dashboard-ticket-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">Loading tickets...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1050,10 +1006,10 @@
                     <option value="">— Select —</option>
                     <option>Promotional Materials</option>
                     <option>Digital Advertising</option>
-                    <option>Print &amp; Signage</option>
+                    <option>Print & Signage</option>
                     <option>Photography / Video</option>
-                    <option>Events &amp; Sponsorships</option>
-                    <option>Swag &amp; Merchandise</option>
+                    <option>Events & Sponsorships</option>
+                    <option>Swag & Merchandise</option>
                     <option>Website</option>
                     <option>Other / TBD</option>
                   </select>
@@ -1068,7 +1024,7 @@
 
             <div class="form-group full">
               <label>Attachments / Reference Files</label>
-              <div class="file-upload-area" onclick="showToast(&#39;File upload coming in next build&#39;,&#39;info&#39;)">
+              <div class="file-upload-area" onclick="showToast('File upload coming in next build','info')">
                 📎 Click to attach photos, logos, or reference examples
               </div>
             </div>
@@ -1076,7 +1032,7 @@
         </div>
 
         <!-- ROUTING PREVIEW -->
-        <div class="card" style="margin-top:16px" id="routing-preview">
+        <div class="card" style="margin-top:16px" id="routing-preview" style="display:none">
           <div class="card-title">Auto-Assignment Preview</div>
           <div id="routing-content">
             <div style="color:#7a9aaa;font-size:13px">Select a request type to see who will be assigned based on current workload.</div>
@@ -1116,17 +1072,17 @@
             <div style="margin-top:16px">
               <div style="font-size:12px;font-weight:600;color:#4a6a7a;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px">Visual Style Examples</div>
               <div class="visual-examples" id="visual-examples">
-                <div class="visual-example" onclick="selectExample(this,&#39;Bright &amp; airy&#39;)">
+                <div class="visual-example" onclick="selectExample(this,'Bright & airy')">
                   <div class="visual-example-img" style="background:linear-gradient(135deg,#e8f5f0,#c2e8d8)">☀️</div>
-                  <div class="visual-example-label">Bright &amp; Airy</div>
+                  <div class="visual-example-label">Bright & Airy</div>
                 </div>
-                <div class="visual-example" onclick="selectExample(this,&#39;Bold &amp; graphic&#39;)">
+                <div class="visual-example" onclick="selectExample(this,'Bold & graphic')">
                   <div class="visual-example-img" style="background:linear-gradient(135deg,#013e51,#0a5a73)">◼️</div>
-                  <div class="visual-example-label">Bold &amp; Graphic</div>
+                  <div class="visual-example-label">Bold & Graphic</div>
                 </div>
-                <div class="visual-example" onclick="selectExample(this,&#39;Warm &amp; lifestyle&#39;)">
+                <div class="visual-example" onclick="selectExample(this,'Warm & lifestyle')">
                   <div class="visual-example-img" style="background:linear-gradient(135deg,#fdf0e0,#f7d4a0)">🌅</div>
-                  <div class="visual-example-label">Warm &amp; Lifestyle</div>
+                  <div class="visual-example-label">Warm & Lifestyle</div>
                 </div>
               </div>
               <div class="form-hint" style="margin-top:6px">Select your preferred visual direction — this will be attached to the ticket.</div>
@@ -1177,83 +1133,7 @@
           </tr>
         </thead>
         <tbody id="ticket-tbody">
-          <tr onclick="openTicket(&#39;MCC-0047&#39;)">
-            <td><span class="ticket-id">MCC-0047</span></td>
-            <td><span class="ticket-title">Spring move-in Instagram reel</span></td>
-            <td><span class="ticket-prop">GKP</span></td>
-            <td><span class="tag">Social</span></td>
-            <td><div class="assignee av-renee" title="Renee">RE</div></td>
-            <td><span class="badge badge-approval">⏳ Awaiting Approval</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 10</td>
-            <td style="color:#d47b1a;font-weight:600">Jun 17</td>
-            <td style="font-size:12px">—</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0046&#39;)">
-            <td><span class="ticket-id">MCC-0046</span></td>
-            <td><span class="ticket-title">Promo tote bag order — Ivy &amp; Elm</span></td>
-            <td><span class="ticket-prop">Viera</span></td>
-            <td><span class="tag">Swag</span></td>
-            <td><div class="assignee av-maya" title="Maya">MA</div></td>
-            <td><span class="badge badge-approval">⏳ Awaiting Approval</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 8</td>
-            <td style="color:#e85c4a;font-weight:600">Jun 16</td>
-            <td style="font-size:12px">$840</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0045&#39;)">
-            <td><span class="ticket-id">MCC-0045</span></td>
-            <td><span class="ticket-title">Google Ads refresh — Q3</span></td>
-            <td><span class="ticket-prop">Nocatee</span></td>
-            <td><span class="tag">Ads</span></td>
-            <td><div class="assignee av-york" title="York">YK</div></td>
-            <td><span class="badge badge-inprogress">🔄 In Progress</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 12</td>
-            <td>Jun 20</td>
-            <td style="font-size:12px">$2,200</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0044&#39;)">
-            <td><span class="ticket-id">MCC-0044</span></td>
-            <td><span class="ticket-title">Website copy update — pet policy</span></td>
-            <td><span class="ticket-prop">Bartram</span></td>
-            <td><span class="tag">Website</span></td>
-            <td><div class="assignee av-jordan" title="Jordan">JO</div></td>
-            <td><span class="badge badge-review">👁 In Review</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 13</td>
-            <td>Jun 22</td>
-            <td style="font-size:12px">—</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0043&#39;)">
-            <td><span class="ticket-id">MCC-0043</span></td>
-            <td><span class="ticket-title">Student deal flyer — fall semester</span></td>
-            <td><span class="ticket-prop">Maple Hall (NJIT)</span></td>
-            <td><span class="tag">Print</span></td>
-            <td><div class="assignee av-renee" title="Renee">RE</div></td>
-            <td><span class="badge badge-new">🆕 New</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 15</td>
-            <td>Jun 25</td>
-            <td style="font-size:12px">$350</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0042&#39;)">
-            <td><span class="ticket-id">MCC-0042</span></td>
-            <td><span class="ticket-title">Pool party event banner — digital</span></td>
-            <td><span class="ticket-prop">Sereno</span></td>
-            <td><span class="tag">Print</span></td>
-            <td><div class="assignee av-maya" title="Maya">MA</div></td>
-            <td><span class="badge badge-inprogress">🔄 In Progress</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 14</td>
-            <td>Jun 21</td>
-            <td style="font-size:12px">$180</td>
-          </tr>
-          <tr onclick="openTicket(&#39;MCC-0041&#39;)">
-            <td><span class="ticket-id">MCC-0041</span></td>
-            <td><span class="ticket-title">New resident welcome email</span></td>
-            <td><span class="ticket-prop">Florence Villa</span></td>
-            <td><span class="tag">Email</span></td>
-            <td><div class="assignee av-york" title="York">YK</div></td>
-            <td><span class="badge badge-complete">✓ Complete</span></td>
-            <td style="color:#7a9aaa;font-size:12px">Jun 5</td>
-            <td>Jun 12</td>
-            <td style="font-size:12px">—</td>
-          </tr>
+          <tr><td colspan="9" style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">Loading tickets...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1268,168 +1148,15 @@
       </div>
     </div>
 
-    <div class="alert-bar">
-      ⏸ Timer paused on <strong>3 tickets</strong> — marketing team hours not counting while approvals are pending
+    <div id="approvals-alert" class="alert-bar" style="display:none">
+      ⏸ Timer paused on <strong id="approvals-paused-count">0</strong> tickets — marketing team hours not counting while approvals are pending
     </div>
 
-    <!-- APPROVAL CARD 1 -->
-    <div class="approval-card urgent">
-      <div class="approval-header">
-        <div>
-          <div class="approval-title">Promo Tote Bag Order — Ivy &amp; Elm <span class="badge badge-urgent" style="margin-left:6px">⚠️ Due Today</span></div>
-          <div class="approval-meta">MCC-0046 · Viera · Swag · $840 order · Submitted by Carla M. (Site Team)</div>
-        </div>
-        <span class="badge badge-approval">⏳ Regional Approval Needed</span>
-      </div>
-
-      <div class="approval-steps">
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Design Proof<br><strong style="color:#2a9d6e">Approved</strong><br><small>by Carla M.</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">GM Budget<br><strong style="color:#2a9d6e">Approved</strong><br><small>by GM Torres</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot active">→</div>
-          <div class="step-label">Regional<br><strong style="color:#d47b1a">Pending</strong><br><small>Sarah R.</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot pending">4</div>
-          <div class="step-label">Order Placed<br><strong style="color:#aac0ca">Waiting</strong></div>
-        </div>
-      </div>
-
-      <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:#4a6a7a;margin-top:4px">
-        📎 <strong>Design proof:</strong> Viera_IvyElm_Tote_PROOF_v2.pdf · <strong>Quantity:</strong> 150 units · <strong>Vendor:</strong> Printful Direct · <strong>Budget line:</strong> Promotional Materials Q2
-      </div>
-
-      <!-- COUNTER APPROVAL AMOUNT -->
-      <div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:12px;margin-top:8px">
-        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">💰 Spend Approval — Requested: <strong>$840.00</strong></div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:160px">
-            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Approve at requested amount or enter a counter amount</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:14px;color:#5a3a00;font-weight:600">$</span>
-              <input type="number" id="counter-amount-0046" placeholder="840.00" step="0.01" min="0" style="width:120px;font-size:14px;font-weight:600;color:var(--rise-dark)" value="840.00">
-              <span style="font-size:12px;color:#7a9aaa">max approved spend</span>
-            </div>
-          </div>
-          <div style="flex:1;min-width:160px">
-            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Counter-approval note (optional)</label>
-            <input type="text" id="counter-note-0046" placeholder="e.g. Approve up to $700 only — reduce quantity" style="font-size:12px">
-          </div>
-        </div>
-      </div>
-
-      <div class="approval-actions">
-        <button class="btn btn-approve" onclick="approveItem(this,&#39;MCC-0046&#39;)">✓ Approve &amp; Notify Team</button>
-        <button class="btn btn-reject" onclick="openRejectionModal(&#39;MCC-0046&#39;,&#39;Maya&#39;,&#39;Promo Tote Bag Order — Ivy &amp; Elm&#39;,&#39;maya@riseresidential.com&#39;,&#39;Carla M.&#39;)">✕ Request Changes</button>
-        <button class="btn btn-secondary btn-sm" onclick="openTicket(&#39;MCC-0046&#39;)">View Full Ticket</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendNudge(&#39;MCC-0046&#39;,&#39;Sarah R.&#39;,&#39;Regional&#39;,&#39;Promo Tote Bag Order — Ivy &amp; Elm&#39;)" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
-      </div>
-    </div>
-
-    <!-- APPROVAL CARD 2 -->
-    <div class="approval-card">
-      <div class="approval-header">
-        <div>
-          <div class="approval-title">Spring Move-In Instagram Reel — GKP</div>
-          <div class="approval-meta">MCC-0047 · Glen Kernan Park · Social · No spend · Submitted by Tiffany W.</div>
-        </div>
-        <span class="badge badge-approval">⏳ Regional Approval Needed</span>
-      </div>
-
-      <div class="approval-steps">
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Content Created<br><strong style="color:#2a9d6e">Done</strong><br><small>by Renee</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Submitter Review<br><strong style="color:#2a9d6e">Approved</strong><br><small>by Tiffany W.</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot active">→</div>
-          <div class="step-label">Regional<br><strong style="color:#d47b1a">Pending</strong><br><small>Sarah R.</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot pending">4</div>
-          <div class="step-label">Post / Publish<br><strong style="color:#aac0ca">Waiting</strong></div>
-        </div>
-      </div>
-
-      <div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:12px;margin-top:8px">
-        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📋 Approval Response — No spend associated</div>
-        <div class="form-group">
-          <label style="font-size:11px;color:#7a4400">Conditions or notes for approval (optional)</label>
-          <input type="text" id="counter-note-0047" placeholder="e.g. Approved — please add brand hashtag before posting" style="font-size:12px">
-        </div>
-      </div>
-
-      <div class="approval-actions">
-        <button class="btn btn-approve" onclick="approveItem(this,&#39;MCC-0047&#39;)">✓ Approve &amp; Notify Team</button>
-        <button class="btn btn-reject" onclick="openRejectionModal(&#39;MCC-0047&#39;,&#39;Renee&#39;,&#39;Spring Move-In Instagram Reel — GKP&#39;,&#39;renee@riseresidential.com&#39;,&#39;Tiffany W.&#39;)">✕ Request Changes</button>
-        <button class="btn btn-secondary btn-sm" onclick="openTicket(&#39;MCC-0047&#39;)">View Full Ticket</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendNudge(&#39;MCC-0047&#39;,&#39;Sarah R.&#39;,&#39;Regional&#39;,&#39;Spring Move-In Instagram Reel — GKP&#39;)" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
-      </div>
-    </div>
-
-    <!-- APPROVAL CARD 3 -->
-    <div class="approval-card">
-      <div class="approval-header">
-        <div>
-          <div class="approval-title">Google Ads Q3 Refresh — Nocatee</div>
-          <div class="approval-meta">MCC-0045 · Nocatee · Paid Ads · $2,200 monthly budget · Submitted by Marco D.</div>
-        </div>
-        <span class="badge badge-approval">⏳ GM Approval Needed</span>
-      </div>
-
-      <div class="approval-steps">
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Ads Created<br><strong style="color:#2a9d6e">Done</strong><br><small>by York</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot active">→</div>
-          <div class="step-label">GM Review<br><strong style="color:#d47b1a">Pending</strong><br><small>GM Chen</small></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot pending">3</div>
-          <div class="step-label">Regional<br><strong style="color:#aac0ca">Waiting</strong></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot pending">4</div>
-          <div class="step-label">Go Live<br><strong style="color:#aac0ca">Waiting</strong></div>
-        </div>
-      </div>
-
-      <!-- COUNTER APPROVAL AMOUNT -->
-      <div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:12px;margin-top:8px">
-        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">💰 Spend Approval — Requested: <strong>$2,200.00 / month</strong></div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:160px">
-            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Approve at requested amount or enter a counter amount</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:14px;color:#5a3a00;font-weight:600">$</span>
-              <input type="number" id="counter-amount-0045" placeholder="2200.00" step="0.01" min="0" style="width:120px;font-size:14px;font-weight:600;color:var(--rise-dark)" value="2200.00">
-              <span style="font-size:12px;color:#7a9aaa">/ month approved</span>
-            </div>
-          </div>
-          <div style="flex:1;min-width:160px">
-            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Counter-approval note (optional)</label>
-            <input type="text" id="counter-note-0045" placeholder="e.g. Approved for Q3 only — reassess in October" style="font-size:12px">
-          </div>
-        </div>
-      </div>
-
-      <div class="approval-actions">
-        <button class="btn btn-approve" onclick="approveItem(this,&#39;MCC-0045&#39;)">✓ Approve &amp; Notify Team</button>
-        <button class="btn btn-reject" onclick="openRejectionModal(&#39;MCC-0045&#39;,&#39;York&#39;,&#39;Google Ads Q3 Refresh — Nocatee&#39;,&#39;york@riseresidential.com&#39;,&#39;Marco D.&#39;)">✕ Request Changes</button>
-        <button class="btn btn-secondary btn-sm" onclick="openTicket(&#39;MCC-0045&#39;)">View Full Ticket</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendNudge(&#39;MCC-0045&#39;,&#39;GM Chen&#39;,&#39;GM&#39;,&#39;Google Ads Q3 Refresh — Nocatee&#39;)" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
+    <div id="approvals-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">✅</div>
+        <div class="empty-state-title">No approvals pending</div>
+        <div style="font-size:13px;color:#7a9aaa">All tickets are moving — nothing waiting on GMs or Regionals right now.</div>
       </div>
     </div>
   </div>
@@ -1458,9 +1185,9 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px">
       <!-- LEAD DATA UPLOAD -->
       <div class="card" style="border-left:4px solid var(--rise-light)">
-        <div style="font-size:12px;font-weight:600;color:var(--rise-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📊 Lead &amp; Lease Data</div>
+        <div style="font-size:12px;font-weight:600;color:var(--rise-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📊 Lead & Lease Data</div>
         <div style="font-size:12px;color:#5a7a86;margin-bottom:10px;line-height:1.5">Upload a CSV export from Entrata with lead source, leads, and leases by month.</div>
-        <div class="file-upload-area" onclick="document.getElementById(&#39;csv-upload&#39;).click()" id="csv-drop-zone" style="padding:14px">
+        <div class="file-upload-area" onclick="document.getElementById('csv-upload').click()" id="csv-drop-zone" style="padding:14px">
           <div style="font-size:18px;margin-bottom:4px">📥</div>
           <div style="font-size:12px">Click to upload CSV</div>
           <div style="font-size:10px;color:#aac0ca;margin-top:2px">From Entrata → Reports → Lead Source</div>
@@ -1472,9 +1199,9 @@
 
       <!-- INVOICE / CONTRACT UPLOAD -->
       <div class="card" style="border-left:4px solid #d47b1a">
-        <div style="font-size:12px;font-weight:600;color:var(--rise-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">🧾 Invoices &amp; Contracts</div>
+        <div style="font-size:12px;font-weight:600;color:var(--rise-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">🧾 Invoices & Contracts</div>
         <div style="font-size:12px;color:#5a7a86;margin-bottom:10px;line-height:1.5">Upload PDF invoices or contracts. AI reads and extracts vendor, amount, dates, and renewal terms.</div>
-        <div class="file-upload-area" onclick="document.getElementById(&#39;doc-upload&#39;).click()" id="doc-drop-zone" style="padding:14px">
+        <div class="file-upload-area" onclick="document.getElementById('doc-upload').click()" id="doc-drop-zone" style="padding:14px">
           <div style="font-size:18px;margin-bottom:4px">📄</div>
           <div style="font-size:12px">Click to upload PDF or image</div>
           <div style="font-size:10px;color:#aac0ca;margin-top:2px">Invoice, contract, or marketing agreement</div>
@@ -1497,7 +1224,7 @@
             ✓ <strong>Google Ads</strong> — no contract, month-to-month
           </div>
         </div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="showSettingsTab(&#39;sla&#39;);showTab(&#39;settings&#39;)">Manage alert settings →</button>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="showSettingsTab('sla');showTab('settings')">Manage alert settings →</button>
       </div>
     </div>
 
@@ -1560,7 +1287,7 @@
 
         <!-- DOCUMENTS TABLE -->
         <div class="card">
-          <div class="card-title">Uploaded Invoices &amp; Contracts <span id="doc-count-badge" class="nav-badge" style="background:var(--rise-light)">0</span></div>
+          <div class="card-title">Uploaded Invoices & Contracts <span id="doc-count-badge" class="nav-badge" style="background:var(--rise-light)">0</span></div>
           <div id="docs-empty" style="color:#7a9aaa;font-size:13px;padding:16px 0;text-align:center">No documents uploaded yet. Upload an invoice or contract above and AI will extract the details automatically.</div>
           <table class="lead-table" id="docs-table" style="display:none">
             <thead><tr><th>Document</th><th>Source / Vendor</th><th>Amount</th><th>Period</th><th>Renewal / Cancel Date</th><th>Uploaded</th><th></th></tr></thead>
@@ -1602,8 +1329,8 @@
           <div id="spend-output" style="display:none;margin-top:14px">
             <div class="ai-output" id="spend-ai-text" style="font-size:12px"></div>
             <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm" onclick="showToast(&#39;Vendor message draft sent to Outlook&#39;,&#39;success&#39;)">📧 Draft Vendor Message</button>
-              <button class="btn btn-secondary btn-sm" onclick="showToast(&#39;Saved to lead source notes&#39;,&#39;info&#39;)">Save</button>
+              <button class="btn btn-primary btn-sm" onclick="showToast('Vendor message draft sent to Outlook','success')">📧 Draft Vendor Message</button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Saved to lead source notes','info')">Save</button>
             </div>
           </div>
         </div>
@@ -1630,7 +1357,7 @@
         </div>
         <div id="extraction-result" style="display:none">
           <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
-            <div style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Extracted Information — Review &amp; Edit</div>
+            <div style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Extracted Information — Review & Edit</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>Vendor / Source Name</label>
@@ -1698,7 +1425,7 @@
     <div class="modal" style="max-width:480px">
       <div class="modal-header">
         <div><div class="modal-title" id="ls-modal-title">Add Lead Source</div><div class="modal-meta">Manual entry — use for sources not in Entrata</div></div>
-        <button class="modal-close" onclick="document.getElementById(&#39;add-lead-source-modal&#39;).classList.remove(&#39;open&#39;)">✕</button>
+        <button class="modal-close" onclick="document.getElementById('add-lead-source-modal').classList.remove('open')">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-grid">
@@ -1748,7 +1475,7 @@
         </div>
         <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn btn-primary" onclick="saveLeadSource()">Save Source</button>
-          <button class="btn btn-secondary" onclick="document.getElementById(&#39;add-lead-source-modal&#39;).classList.remove(&#39;open&#39;)">Cancel</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('add-lead-source-modal').classList.remove('open')">Cancel</button>
           <button class="btn btn-reject" id="delete-ls-btn" style="display:none;margin-left:auto" onclick="deleteLeadSource()">Remove</button>
         </div>
       </div>
@@ -1760,7 +1487,7 @@
     <div class="modal" style="max-width:560px">
       <div class="modal-header">
         <div><div class="modal-title">Manual Lead Data Entry</div><div class="modal-meta">Enter leads and leases by source for a specific period</div></div>
-        <button class="modal-close" onclick="document.getElementById(&#39;manual-lead-modal&#39;).classList.remove(&#39;open&#39;)">✕</button>
+        <button class="modal-close" onclick="document.getElementById('manual-lead-modal').classList.remove('open')">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-grid" style="margin-bottom:16px">
@@ -1782,7 +1509,7 @@
         <button class="btn btn-secondary btn-sm" onclick="addManualLeadRow()">+ Add Source Row</button>
         <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn btn-primary" onclick="saveManualLeadData()">Save Data</button>
-          <button class="btn btn-secondary" onclick="document.getElementById(&#39;manual-lead-modal&#39;).classList.remove(&#39;open&#39;)">Cancel</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('manual-lead-modal').classList.remove('open')">Cancel</button>
         </div>
       </div>
     </div>
@@ -1925,7 +1652,7 @@
         <hr class="divider">
         <div class="card-title" style="margin-bottom:12px">Budget Accountability</div>
         <table style="width:100%;font-size:13px;border-collapse:collapse">
-          <tbody><tr style="border-bottom:var(--border)">
+          <tr style="border-bottom:var(--border)">
             <td style="padding:8px 0;color:#5a7a86">Total spend tracked (MTD)</td>
             <td style="text-align:right;font-weight:600;color:var(--rise-dark)">$42,180</td>
           </tr>
@@ -1941,7 +1668,7 @@
             <td style="padding:8px 0;color:#5a7a86">Requests without approval</td>
             <td style="text-align:right;font-weight:600;color:#e85c4a">$0</td>
           </tr>
-        </tbody></table>
+        </table>
         <div style="margin-top:10px;padding:10px;background:#e6f7ee;border-radius:var(--radius-sm);font-size:12px;color:#1a6b3e">
           ✓ Zero unapproved spend this period — all purchases in workflow
         </div>
@@ -1953,10 +1680,10 @@
   <div class="page" id="page-reporting">
     <div class="section-header">
       <div>
-        <div class="section-title">Reporting &amp; Trends</div>
+        <div class="section-title">Reporting & Trends</div>
         <div class="section-sub">Upload Entrata Box Score reports to track leads, spend, and conversions over time</div>
       </div>
-      <button class="btn btn-primary" onclick="document.getElementById(&#39;report-upload-input&#39;).click()">⬆ Upload Box Score Report</button>
+      <button class="btn btn-primary" onclick="document.getElementById('report-upload-input').click()">⬆ Upload Box Score Report</button>
       <input type="file" id="report-upload-input" accept=".csv" style="display:none" onchange="handleReportUpload(this)">
     </div>
 
@@ -2075,7 +1802,7 @@
             <option value="q2-26">Q2 2026</option>
             <option value="ytd26">YTD 2026</option>
           </select>
-          <button class="btn btn-secondary btn-sm" onclick="showSettingsTab(&#39;bonus-settings&#39;);showTab(&#39;settings&#39;)">⚙ Bonus Settings</button>
+          <button class="btn btn-secondary btn-sm" onclick="showSettingsTab('bonus-settings');showTab('settings')">⚙ Bonus Settings</button>
         </div>
       </div>
 
@@ -2129,13 +1856,13 @@
 
     <!-- SETTINGS SUB-NAV -->
     <div style="display:flex;gap:0;border-bottom:var(--border-mid);margin-bottom:20px;background:white;border-radius:var(--radius) var(--radius) 0 0;padding:0 16px;box-shadow:var(--shadow);flex-wrap:wrap">
-      <button class="settings-tab active" onclick="showSettingsTab(&#39;team&#39;)" id="stab-team" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid var(--rise-light);cursor:pointer;font-family:var(--font);color:var(--rise-dark)">👥 Team Members</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;skills&#39;)" id="stab-skills" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🎯 Skills &amp; Routing</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;approvals&#39;)" id="stab-approvals" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">✅ Approval Rules</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;approvers&#39;)" id="stab-approvers" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">👤 Approvers</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;properties&#39;)" id="stab-properties" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🏢 Properties</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;sla&#39;)" id="stab-sla" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">⏱ SLA Rules</button>
-      <button class="settings-tab" onclick="showSettingsTab(&#39;bonus-settings&#39;)" id="stab-bonus-settings" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🏆 Bonus Settings</button>
+      <button class="settings-tab active" onclick="showSettingsTab('team')" id="stab-team" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid var(--rise-light);cursor:pointer;font-family:var(--font);color:var(--rise-dark)">👥 Team Members</button>
+      <button class="settings-tab" onclick="showSettingsTab('skills')" id="stab-skills" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🎯 Skills & Routing</button>
+      <button class="settings-tab" onclick="showSettingsTab('approvals')" id="stab-approvals" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">✅ Approval Rules</button>
+      <button class="settings-tab" onclick="showSettingsTab('approvers')" id="stab-approvers" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">👤 Approvers</button>
+      <button class="settings-tab" onclick="showSettingsTab('properties')" id="stab-properties" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🏢 Properties</button>
+      <button class="settings-tab" onclick="showSettingsTab('sla')" id="stab-sla" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">⏱ SLA Rules</button>
+      <button class="settings-tab" onclick="showSettingsTab('bonus-settings')" id="stab-bonus-settings" style="padding:13px 16px;font-size:13px;font-weight:500;color:#5a7a86;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font)">🏆 Bonus Settings</button>
     </div>
 
     <!-- TEAM MEMBERS -->
@@ -2266,7 +1993,7 @@
 
         <!-- TARGETS & THRESHOLDS -->
         <div class="card">
-          <div class="card-title">Targets &amp; Thresholds</div>
+          <div class="card-title">Targets & Thresholds</div>
           <div style="display:flex;flex-direction:column;gap:12px" id="bonus-targets-list"></div>
           <button class="btn btn-primary btn-sm" onclick="saveBonusTargets()" style="margin-top:16px">Save Targets</button>
         </div>
@@ -2291,8 +2018,8 @@
           <div class="form-group">
             <label>Rating dimensions</label>
             <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
-              <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-quality" checked=""> Quality of work</label>
-              <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-timeliness" checked=""> Timeliness</label>
+              <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-quality" checked> Quality of work</label>
+              <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-timeliness" checked> Timeliness</label>
               <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-communication"> Communication</label>
               <label style="text-transform:none;font-size:13px;font-weight:400;display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="rate-accuracy"> Brief accuracy / followed direction</label>
             </div>
@@ -2307,7 +2034,7 @@
             </select>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveSurveySettings();showToast(&#39;Survey settings saved&#39;,&#39;success&#39;)" style="margin-top:12px">Save Survey Settings</button>
+        <button class="btn btn-primary btn-sm" onclick="saveSurveySettings();showToast('Survey settings saved','success')" style="margin-top:12px">Save Survey Settings</button>
       </div>
 
       <!-- COST SAVINGS SETTINGS -->
@@ -2340,7 +2067,7 @@
             <select id="track-cplease"><option>Yes — auto-detect from uploads</option><option>Manual entry only</option><option>No</option></select>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="showToast(&#39;Cost savings settings saved&#39;,&#39;success&#39;)" style="margin-top:12px">Save Settings</button>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Cost savings settings saved','success')" style="margin-top:12px">Save Settings</button>
       </div>
     </div>
   </div>
@@ -2372,7 +2099,7 @@
         </div>
         <div class="form-group full">
           <label>Role / Title</label>
-          <input type="text" id="m-role" placeholder="e.g. Creative Designer · Social &amp; Ads">
+          <input type="text" id="m-role" placeholder="e.g. Creative Designer · Social & Ads">
         </div>
         <div class="form-group">
           <label>Avatar Color</label>
@@ -2501,7 +2228,7 @@
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
       <div><div class="modal-title">Add Skill Category</div><div class="modal-meta">Skill name and description</div></div>
-      <button class="modal-close" onclick="document.getElementById(&#39;add-skill-modal&#39;).classList.remove(&#39;open&#39;)">✕</button>
+      <button class="modal-close" onclick="document.getElementById('add-skill-modal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-group" style="margin-bottom:14px">
@@ -2514,7 +2241,7 @@
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" onclick="saveSkill()">Save Skill</button>
-        <button class="btn btn-secondary" onclick="document.getElementById(&#39;add-skill-modal&#39;).classList.remove(&#39;open&#39;)">Cancel</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('add-skill-modal').classList.remove('open')">Cancel</button>
       </div>
     </div>
   </div>
@@ -2575,7 +2302,7 @@
       <!-- BRIEF -->
       <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:#2a4550">
         <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7a9aaa;display:block;margin-bottom:6px">Creative Brief (AI-generated)</strong>
-        This reel targets young professionals considering GKP as a spring move-in destination. Tone: aspirational, community-forward. Visual style: bright &amp; airy with natural light, outdoor amenity highlights. Key message: "Your best chapter starts here." Format: 15–30 sec vertical video with captions. Include pool area, fitness center, and one lifestyle resident moment.
+        This reel targets young professionals considering GKP as a spring move-in destination. Tone: aspirational, community-forward. Visual style: bright & airy with natural light, outdoor amenity highlights. Key message: "Your best chapter starts here." Format: 15–30 sec vertical video with captions. Include pool area, fitness center, and one lifestyle resident moment.
       </div>
 
       <!-- TIMELINE -->
@@ -2608,26 +2335,8 @@
       <!-- CONVERSATION -->
       <div class="conversation">
         <div class="conv-title">Ticket Conversation</div>
-        <div class="message">
-          <div class="msg-avatar av-renee">RE</div>
-          <div>
-            <div class="msg-bubble">Hi Tiffany! I've got your reel request. Quick question — do you have any existing video footage from GKP, or should I work from the photo library?</div>
-            <div class="msg-time">Renee · Jun 10, 10:05am</div>
-          </div>
-        </div>
-        <div class="message message-right">
-          <div class="msg-avatar" style="background:#5a7a86">TW</div>
-          <div>
-            <div class="msg-bubble">We have some great pool shots from last summer! I'll upload them now. Also check the Egnyte folder — GKP &gt; Photos &gt; Amenities &gt; 2025.</div>
-            <div class="msg-time">Tiffany W. · Jun 10, 2:30pm</div>
-          </div>
-        </div>
-        <div class="message">
-          <div class="msg-avatar av-renee">RE</div>
-          <div>
-            <div class="msg-bubble">Perfect — got them. Draft reel is ready for your review in the attachments above. Looking good I think! 🎬</div>
-            <div class="msg-time">Renee · Jun 12, 3:50pm</div>
-          </div>
+        <div id="conv-messages" style="max-height:200px;overflow-y:auto">
+          <div style="text-align:center;padding:16px;color:#7a9aaa;font-size:12px">No messages yet.</div>
         </div>
         <div class="conv-input-wrap">
           <input type="text" placeholder="Add a message to this ticket..." id="conv-input">
@@ -3034,6 +2743,35 @@ async function refreshTicketCount() {
   const { count: approvalCount } = await sb.from('tickets').select('*', { count: 'exact', head: true }).eq('status','awaiting_approval');
   const ael = document.getElementById('approvalCount');
   if (ael && approvalCount != null) ael.textContent = approvalCount;
+  // Update dashboard stat cards
+  const openEl = document.getElementById('stat-open-tickets');
+  const approvalEl = document.getElementById('stat-approvals');
+  if (openEl && count != null) openEl.textContent = count;
+  if (approvalEl && approvalCount != null) approvalEl.textContent = approvalCount;
+  // Show alert bar if approvals pending
+  const alertBar = document.getElementById('dashboard-alert');
+  const alertText = document.getElementById('dashboard-alert-text');
+  if (alertBar && approvalCount > 0) {
+    alertBar.style.display = 'flex';
+    alertText.innerHTML = '<strong>' + approvalCount + ' approval' + (approvalCount > 1 ? 's' : '') + '</strong> waiting on GMs or Regionals';
+  } else if (alertBar) {
+    alertBar.style.display = 'none';
+  }
+  // Update approvals pause counter
+  const pausedEl = document.getElementById('approvals-paused-count');
+  const approvalsAlert = document.getElementById('approvals-alert');
+  if (pausedEl) pausedEl.textContent = approvalCount || 0;
+  if (approvalsAlert) approvalsAlert.style.display = approvalCount > 0 ? 'flex' : 'none';
+  // Render tickets on dashboard and all tickets tab
+  await renderLiveTickets();
+  // Update budget stat from lead sources
+  const totalSpend = leadSourcesData.reduce((s,l) => s + (l.monthlyCost||0), 0);
+  const budgetEl = document.getElementById('stat-budget');
+  if (budgetEl) budgetEl.textContent = totalSpend > 0 ? '$' + totalSpend.toLocaleString() : '—';
+  // Top lead source
+  const topSource = [...leadSourcesData].sort((a,b) => b.leases - a.leases)[0];
+  const roiEl = document.getElementById('stat-lead-roi');
+  if (roiEl && topSource) roiEl.textContent = topSource.type && topSource.type.includes('ILS') ? '↑ ILS' : '↑ ' + topSource.name.split(' ')[0];
 }
 
 function appendMessageToThread(msg) {
@@ -3074,9 +2812,95 @@ async function saveToStorage() {
   // Settings data is saved individually per mutation — no batch needed
 }
 
-// Patch saveLeadStorage  
-async function saveLeadStorage() {
-  // Lead sources saved individually via DB.saveLeadSource
+async function renderLiveTickets() {
+  const tickets = await DB.loadTickets();
+  const statusMap = {
+    new: '<span class="badge badge-new">🆕 New</span>',
+    in_progress: '<span class="badge badge-inprogress">🔄 In Progress</span>',
+    in_review: '<span class="badge badge-review">👁 In Review</span>',
+    awaiting_approval: '<span class="badge badge-approval">⏳ Awaiting Approval</span>',
+    complete: '<span class="badge badge-complete">✓ Complete</span>',
+    cancelled: '<span class="badge badge-urgent">✕ Cancelled</span>',
+  };
+
+  // Render All Tickets tab
+  const tbody = document.getElementById('ticket-tbody');
+  // Render Dashboard active tickets
+  const dashTbody = document.getElementById('dashboard-ticket-tbody');
+
+  const activeTickets = tickets.filter(t => t.status !== 'complete' && t.status !== 'cancelled');
+
+  [tbody, dashTbody].forEach((el, idx) => {
+    if (!el) return;
+    const rows = idx === 1 ? activeTickets.slice(0,8) : tickets;
+    if (rows.length === 0) {
+      el.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>';
+      return;
+    }
+    el.innerHTML = rows.map(t => {
+      const assignee = t.team_members;
+      const ini = assignee ? (assignee.fname[0] + (assignee.lname||'?')[0]).toUpperCase() : '—';
+      const due = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+      const dueStyle = t.due_date && new Date(t.due_date) < new Date() ? 'color:#e85c4a;font-weight:600' : '';
+      const cost = t.estimated_cost ? '$' + parseFloat(t.estimated_cost).toLocaleString() : '—';
+      return `<tr onclick="openTicket('${t.ticket_number || t.id}', '${t.id}')">
+        <td><span class="ticket-id">${t.ticket_number || '—'}</span></td>
+        <td><span class="ticket-title">${t.title}</span></td>
+        <td><span class="ticket-prop">${t.property_name || '—'}</span></td>
+        <td><span class="tag">${t.request_type || '—'}</span></td>
+        <td>${assignee ? `<div class="assignee" style="background:${assignee.avatar_color||'var(--rise-dark)'};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white">${ini}</div>` : '<span style="color:#7a9aaa">—</span>'}</td>
+        <td>${statusMap[t.status] || t.status}</td>
+        <td style="color:#7a9aaa;font-size:12px">${t.created_at ? new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
+        <td style="${dueStyle}">${due}</td>
+        <td style="font-size:12px">${cost}</td>
+      </tr>`;
+    }).join('');
+  });
+}
+
+async function renderLiveApprovals() {
+  const tickets = await DB.loadTickets();
+  const pending = tickets.filter(t => t.status === 'awaiting_approval');
+  const list = document.getElementById('approvals-list');
+  if (!list) return;
+  if (pending.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No approvals pending</div><div style="font-size:13px;color:#7a9aaa">All tickets are moving — nothing waiting on GMs or Regionals right now.</div></div>';
+    return;
+  }
+  list.innerHTML = pending.map(t => `
+    <div class="approval-card${t.priority === 'urgent' ? ' urgent' : ''}">
+      <div class="approval-header">
+        <div>
+          <div class="approval-title">${t.title}</div>
+          <div class="approval-meta">${t.ticket_number} · ${t.property_name || '—'} · ${t.request_type || '—'} · Submitted by ${t.submitted_by_name || 'unknown'}</div>
+        </div>
+        <span class="badge badge-approval">⏳ Awaiting Approval</span>
+      </div>
+      ${t.estimated_cost ? `<div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:12px;margin-top:8px">
+        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">💰 Estimated Cost: <strong>$${parseFloat(t.estimated_cost).toLocaleString()}</strong></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px">
+            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Approve amount</label>
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;color:#5a3a00;font-weight:600">$</span>
+            <input type="number" id="counter-amount-${t.id}" value="${t.estimated_cost}" step="0.01" min="0" style="width:120px;font-size:14px;font-weight:600;color:var(--rise-dark)"></div>
+          </div>
+          <div style="flex:1;min-width:160px">
+            <label style="font-size:11px;font-weight:600;color:#7a4400;display:block;margin-bottom:4px">Approval note</label>
+            <input type="text" id="counter-note-${t.id}" placeholder="Optional note" style="font-size:12px">
+          </div>
+        </div>
+      </div>` : `<div style="background:#f0f7fa;border:1px solid var(--rise-mid);border-radius:var(--radius-sm);padding:10px;margin-top:8px">
+        <div class="form-group"><label style="font-size:11px;color:#5a7a86">Approval notes (optional)</label>
+        <input type="text" id="counter-note-${t.id}" placeholder="Any conditions or notes" style="font-size:12px"></div>
+      </div>`}
+      <div class="approval-actions" style="margin-top:12px">
+        <button class="btn btn-approve" onclick="approveItem(this,'${t.ticket_number}','${t.id}')">✓ Approve & Notify Team</button>
+        <button class="btn btn-reject" onclick="openRejectionModal('${t.ticket_number}','${t.team_members?.fname||'Team'}','${t.title}','${t.team_members?.email||''}','${t.submitted_by_name||'Submitter'}')">✕ Request Changes</button>
+        <button class="btn btn-secondary btn-sm" onclick="openTicket('${t.ticket_number}','${t.id}')">View Full Ticket</button>
+        <button class="btn btn-secondary btn-sm" onclick="sendNudge('${t.ticket_number}','Approver','Regional','${t.title}')" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 // ============================================================
@@ -3124,13 +2948,21 @@ window.signIn = signIn;
 window.signOut = signOut;
 window.DB = DB;
 window.currentUserProfile = () => currentUserProfile;
+window.renderLiveTickets = renderLiveTickets;
+window.renderLiveApprovals = renderLiveApprovals;
 
 // Kick off
 boot();
 
-// =============================================
-// ALL SHARED DATA — declared first so every engine can reference them
-// =============================================
+</script>
+
+<script>
+// ============================================================
+// ALL UI FUNCTIONS — regular (non-module) script
+// onclick/onchange attributes require global scope, which
+// type="module" scripts do not provide. All UI logic lives
+// here; Supabase/auth lives in the module script above.
+// ============================================================
 
 const AVATAR_COLORS = ['#013e51','#6ba2b8','#2a9d6e','#d47b1a','#8a4fa8','#e85c4a'];
 
@@ -3263,9 +3095,38 @@ function cycleUser() {
 }
 
 // MODAL
-function openTicket(id) {
-  document.getElementById('modal-ticket-id').textContent = id;
-  document.getElementById('ticket-modal').classList.add('open');
+function openTicket(id, dbId) {
+  document.getElementById('modal-ticket-id').textContent = id || '—';
+  const modal = document.getElementById('ticket-modal');
+  modal.dataset.dbId = dbId || '';
+  modal.classList.add('open');
+  // Load live events if dbId provided
+  if (dbId && window.DB) {
+    window.DB.loadTicketEvents(dbId).then(events => {
+      const tl = document.getElementById('ticket-timeline');
+      if (!tl || !events.length) return;
+      tl.innerHTML = events.map(e => `
+        <div class="tl-item">
+          <div class="tl-dot" style="${e.event_type==='rejected'?'background:#e85c4a':e.event_type==='nudge'?'background:#d47b1a':e.event_type==='approved'?'background:#2a9d6e':''}"></div>
+          <div><div class="tl-text">${e.body||''}</div>
+          <div class="tl-time">${e.created_at ? new Date(e.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : ''}</div></div>
+        </div>`).join('');
+    });
+    window.DB.loadMessages(dbId).then(messages => {
+      const thread = document.getElementById('conv-messages');
+      if (!thread || !messages.length) return;
+      thread.innerHTML = messages.map(m => {
+        const isMe = window.currentUserProfile && window.currentUserProfile()?.email === m.sender_email;
+        const ini = (m.sender_name||'?').slice(0,2).toUpperCase();
+        return `<div class="message${isMe?' message-right':''}">
+          <div class="msg-avatar" style="background:var(--rise-${isMe?'dark':'light'})">${ini}</div>
+          <div><div class="msg-bubble">${m.body}</div>
+          <div class="msg-time">${m.sender_name} · ${new Date(m.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div></div>
+        </div>`;
+      }).join('');
+      thread.scrollTop = thread.scrollHeight;
+    });
+  }
 }
 function closeModal() {
   document.getElementById('ticket-modal').classList.remove('open');
@@ -3536,18 +3397,13 @@ buildSeasonChart();
 // LEAD SOURCE ENGINE
 // =============================================
 
-const DEFAULT_LEAD_SOURCES = [
-  {id:'ls-1', name:'Apartments.com', type:'ILS — National', monthlyCost:2100, leads:210, leases:62, period:'YTD 2026', notes:'Top performer — peak season May–Aug'},
-  {id:'ls-2', name:'Google Ads', type:'Paid Search', monthlyCost:2200, leads:180, leases:44, period:'YTD 2026', notes:'Q3 refresh in progress'},
-  {id:'ls-3', name:'Zillow / Trulia', type:'ILS — National', monthlyCost:1600, leads:95, leases:28, period:'YTD 2026', notes:'Renewal window July — evaluate'},
-  {id:'ls-4', name:'Facebook / Meta', type:'Paid Social', monthlyCost:1200, leads:140, leases:31, period:'YTD 2026', notes:'Strong for Doro and GKP'},
-  {id:'ls-5', name:'Organic / Referral', type:'Referral', monthlyCost:0, leads:65, leases:22, period:'YTD 2026', notes:'Best ROI — no cost'},
-];
-
+const DEFAULT_LEAD_SOURCES = [];
 const DEFAULT_DOCS = [];
 
-let leadSourcesData = JSON.parse(localStorage.getItem('mcc-lead-sources') || 'null') || DEFAULT_LEAD_SOURCES;
-let docsData = JSON.parse(localStorage.getItem('mcc-docs') || 'null') || DEFAULT_DOCS;
+// Lead source and doc data loads from Supabase via DB.loadAll()
+// These are populated by bootApp() — start empty, no localStorage fallback
+let leadSourcesData = [];
+let docsData = [];
 let editingLSId = null;
 let currentExtractedDoc = null;
 
@@ -4949,6 +4805,8 @@ function showTab(tabId) {
   if (tabId === 'settings') showSettingsTab('team');
   if (tabId === 'reporting') { loadChartJS(() => { renderReportHistory(); renderReportCharts(); updateReportKPIs(); }); }
   if (tabId === 'bonus') checkBonusAccess();
+  if (tabId === 'approvals' && window.renderLiveApprovals) window.renderLiveApprovals();
+  if (tabId === 'tickets' && window.renderLiveTickets) window.renderLiveTickets();
 }
 
 // Initialization is handled by boot() in the module script above.
@@ -5766,7 +5624,7 @@ Object.assign(window, {
   </div>
 </div>
 
-
+</body>
 <div class="modal-overlay" id="nudge-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-header" style="background:#7a4400">
@@ -5774,7 +5632,7 @@ Object.assign(window, {
         <div class="modal-title">Send Approval Nudge</div>
         <div class="modal-meta">A friendly email reminder will be sent to the pending approver</div>
       </div>
-      <button class="modal-close" onclick="document.getElementById(&#39;nudge-modal&#39;).classList.remove(&#39;open&#39;)">✕</button>
+      <button class="modal-close" onclick="document.getElementById('nudge-modal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;padding:12px;background:var(--rise-pale);border-radius:var(--radius-sm);font-size:13px">
@@ -5797,15 +5655,14 @@ Object.assign(window, {
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" onclick="sendNudgeEmail()" style="background:#7a4400">📧 Send Nudge Email</button>
-        <button class="btn btn-secondary" onclick="document.getElementById(&#39;nudge-modal&#39;).classList.remove(&#39;open&#39;)">Cancel</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('nudge-modal').classList.remove('open')">Cancel</button>
       </div>
       <div style="margin-top:12px;font-size:11px;color:#7a9aaa">The nudge will be sent via Outlook to the approver's email on file. A copy is logged against the ticket.</div>
     </div>
   </div>
 </div>
 
-<!-- /app-shell -->
+</div><!-- /app-shell -->
 
-
-
-</body></html>
+</body>
+</html>
