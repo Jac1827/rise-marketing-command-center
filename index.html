@@ -2214,55 +2214,43 @@
   <div class="modal">
     <div class="modal-header">
       <div>
-        <div class="modal-title" id="modal-ticket-id">MCC-0047</div>
-        <div class="modal-meta" id="modal-ticket-meta">Spring move-in Instagram reel · GKP · Social · Renee</div>
+        <div class="modal-title" id="modal-ticket-id">—</div>
+        <div class="modal-meta" id="modal-ticket-meta">Loading ticket...</div>
       </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- APPROVAL STEPS -->
-      <div class="approval-steps" style="margin:-4px 0 16px">
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Content<br><strong style="color:#2a9d6e">Done</strong></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot done">✓</div>
-          <div class="step-label">Submitter<br><strong style="color:#2a9d6e">Approved</strong></div>
-        </div>
+      <!-- APPROVAL STEPS — rendered dynamically -->
+      <div class="approval-steps" style="margin:-4px 0 16px" id="modal-approval-steps">
         <div class="approval-step">
           <div class="step-dot active">→</div>
-          <div class="step-label">Regional<br><strong style="color:#d47b1a">Pending</strong></div>
-        </div>
-        <div class="approval-step">
-          <div class="step-dot pending">4</div>
-          <div class="step-label">Publish<br><strong style="color:#aac0ca">Waiting</strong></div>
+          <div class="step-label">In Progress<br><strong style="color:#d47b1a">Active</strong></div>
         </div>
       </div>
 
-      <!-- COST SUMMARY -->
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <!-- COST SUMMARY — rendered dynamically -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" id="modal-cost-summary">
         <div style="flex:1;min-width:140px;background:var(--rise-pale);border-radius:var(--radius-sm);padding:10px 14px">
           <div style="font-size:10px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Requested Cost</div>
-          <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">$0</div>
-          <div style="font-size:11px;color:#7a9aaa">No spend</div>
+          <div style="font-size:18px;font-weight:700;color:var(--rise-dark)" id="modal-cost-val">—</div>
+          <div style="font-size:11px;color:#7a9aaa" id="modal-cost-type">—</div>
         </div>
         <div style="flex:1;min-width:140px;background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:10px 14px">
           <div style="font-size:10px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Approved Amount</div>
-          <div style="font-size:18px;font-weight:700;color:#d47b1a">Pending</div>
-          <div style="font-size:11px;color:#7a9aaa">Awaiting Regional</div>
+          <div style="font-size:18px;font-weight:700;color:#d47b1a" id="modal-approved-val">Pending</div>
+          <div style="font-size:11px;color:#7a9aaa" id="modal-approved-sub">Awaiting approval</div>
         </div>
         <div style="flex:1;min-width:140px;background:var(--rise-pale);border-radius:var(--radius-sm);padding:10px 14px">
           <div style="font-size:10px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Budget Line</div>
-          <div style="font-size:13px;font-weight:600;color:var(--rise-dark);margin-top:4px">—</div>
-          <div style="font-size:11px;color:#7a9aaa">Not specified</div>
+          <div style="font-size:13px;font-weight:600;color:var(--rise-dark);margin-top:4px" id="modal-budget-line">—</div>
+          <div style="font-size:11px;color:#7a9aaa" id="modal-vendor">—</div>
         </div>
       </div>
 
-      <!-- BRIEF -->
-      <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:#2a4550">
-        <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7a9aaa;display:block;margin-bottom:6px">Creative Brief (AI-generated)</strong>
-        This reel targets young professionals considering GKP as a spring move-in destination. Tone: aspirational, community-forward. Visual style: bright & airy with natural light, outdoor amenity highlights. Key message: "Your best chapter starts here." Format: 15–30 sec vertical video with captions. Include pool area, fitness center, and one lifestyle resident moment.
+      <!-- BRIEF — rendered dynamically -->
+      <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:#2a4550" id="modal-brief-section" style="display:none">
+        <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7a9aaa;display:block;margin-bottom:6px">Creative Brief</strong>
+        <span id="modal-brief-text">—</span>
       </div>
 
       <!-- TIMELINE -->
@@ -2271,23 +2259,7 @@
         <div class="timeline" id="ticket-timeline">
           <div class="tl-item">
             <div class="tl-dot"></div>
-            <div><div class="tl-text"><strong>Tiffany W.</strong> submitted request from GKP site team</div><div class="tl-time">Jun 10, 9:14am</div></div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div><div class="tl-text">Auto-assigned to <strong>Renee</strong> (lowest load — 2 active tickets at time of routing)</div><div class="tl-time">Jun 10, 9:14am</div></div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div><div class="tl-text"><strong>Renee</strong> confirmed receipt and started production</div><div class="tl-time">Jun 10, 10:02am</div></div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div><div class="tl-text"><strong>Renee</strong> uploaded draft reel for submitter review</div><div class="tl-time">Jun 12, 3:48pm</div></div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div><div class="tl-text"><strong>Tiffany W.</strong> approved content — sent to Regional for final sign-off</div><div class="tl-time">Jun 13, 11:20am ⏸ Timer paused</div></div>
+            <div><div class="tl-text">Loading timeline...</div></div>
           </div>
         </div>
       </div>
@@ -3162,37 +3134,103 @@ function cycleUser() {
 
 // MODAL
 function openTicket(id, dbId) {
-  document.getElementById('modal-ticket-id').textContent = id || '—';
   const modal = document.getElementById('ticket-modal');
   modal.dataset.dbId = dbId || '';
   modal.classList.add('open');
-  // Load live events if dbId provided
-  if (dbId && window.DB) {
-    window.DB.loadTicketEvents(dbId).then(events => {
-      const tl = document.getElementById('ticket-timeline');
-      if (!tl || !events.length) return;
-      tl.innerHTML = events.map(e => `
-        <div class="tl-item">
-          <div class="tl-dot" style="${e.event_type==='rejected'?'background:#e85c4a':e.event_type==='nudge'?'background:#d47b1a':e.event_type==='approved'?'background:#2a9d6e':''}"></div>
-          <div><div class="tl-text">${e.body||''}</div>
-          <div class="tl-time">${e.created_at ? new Date(e.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : ''}</div></div>
+
+  // Reset to loading state
+  document.getElementById('modal-ticket-id').textContent = id || '—';
+  document.getElementById('modal-ticket-meta').textContent = 'Loading...';
+  document.getElementById('ticket-timeline').innerHTML = '<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text" style="color:#7a9aaa">Loading...</div></div></div>';
+  document.getElementById('conv-messages').innerHTML = '<div style="text-align:center;padding:16px;color:#7a9aaa;font-size:12px">Loading...</div>';
+
+  if (!dbId || !window.DB) return;
+
+  // Load full ticket data
+  window.DB.loadTickets().then(tickets => {
+    const t = tickets.find(x => x.id === dbId);
+    if (!t) return;
+    const assignee = t.team_members;
+    const assigneeName = assignee ? assignee.fname + ' ' + (assignee.lname||'') : 'Unassigned';
+    document.getElementById('modal-ticket-id').textContent = t.ticket_number || id;
+    document.getElementById('modal-ticket-meta').textContent = [t.title, t.property_name, t.request_type, assigneeName].filter(Boolean).join(' · ');
+
+    // Approval steps based on status
+    const stepsEl = document.getElementById('modal-approval-steps');
+    if (stepsEl) {
+      const statusSteps = {
+        new:               [{label:'Submitted',done:true},{label:'In Progress',active:true},{label:'Review',pending:true},{label:'Complete',pending:true}],
+        in_progress:       [{label:'Submitted',done:true},{label:'In Progress',active:true},{label:'Review',pending:true},{label:'Complete',pending:true}],
+        in_review:         [{label:'Submitted',done:true},{label:'In Progress',done:true},{label:'Review',active:true},{label:'Complete',pending:true}],
+        awaiting_approval: [{label:'Submitted',done:true},{label:'Created',done:true},{label:'Review',done:true},{label:'Approval',active:true},{label:'Complete',pending:true}],
+        complete:          [{label:'Submitted',done:true},{label:'Created',done:true},{label:'Approved',done:true},{label:'Complete',done:true}],
+      };
+      const steps = statusSteps[t.status] || statusSteps['new'];
+      stepsEl.innerHTML = steps.map((s,i) => `
+        <div class="approval-step">
+          <div class="step-dot ${s.done?'done':s.active?'active':'pending'}">${s.done?'✓':s.active?'→':(i+1)}</div>
+          <div class="step-label">${s.label}<br><strong style="color:${s.done?'#2a9d6e':s.active?'#d47b1a':'#aac0ca'}">${s.done?'Done':s.active?'Active':'Waiting'}</strong></div>
         </div>`).join('');
-    });
-    window.DB.loadMessages(dbId).then(messages => {
-      const thread = document.getElementById('conv-messages');
-      if (!thread || !messages.length) return;
-      thread.innerHTML = messages.map(m => {
-        const isMe = window.currentUserProfile && window.currentUserProfile()?.email === m.sender_email;
-        const ini = (m.sender_name||'?').slice(0,2).toUpperCase();
-        return `<div class="message${isMe?' message-right':''}">
-          <div class="msg-avatar" style="background:var(--rise-${isMe?'dark':'light'})">${ini}</div>
-          <div><div class="msg-bubble">${m.body}</div>
-          <div class="msg-time">${m.sender_name} · ${new Date(m.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div></div>
-        </div>`;
-      }).join('');
-      thread.scrollTop = thread.scrollHeight;
-    });
-  }
+    }
+
+    // Cost summary
+    const cost = t.estimated_cost;
+    const costEl = document.getElementById('modal-cost-val');
+    const costTypeEl = document.getElementById('modal-cost-type');
+    const approvedEl = document.getElementById('modal-approved-val');
+    const approvedSubEl = document.getElementById('modal-approved-sub');
+    const budgetEl = document.getElementById('modal-budget-line');
+    const vendorEl = document.getElementById('modal-vendor');
+    if (costEl) costEl.textContent = cost ? '$' + parseFloat(cost).toLocaleString() : '$0';
+    if (costTypeEl) costTypeEl.textContent = cost ? (t.cost_type || 'One-time') : 'No spend';
+    if (approvedEl) approvedEl.textContent = t.approved_cost ? '$' + parseFloat(t.approved_cost).toLocaleString() : 'Pending';
+    if (approvedSubEl) approvedSubEl.textContent = t.approved_cost ? 'Approved' : 'Awaiting approval';
+    if (budgetEl) budgetEl.textContent = t.budget_line || '—';
+    if (vendorEl) vendorEl.textContent = t.vendor || '—';
+
+    // Brief
+    const briefSection = document.getElementById('modal-brief-section');
+    const briefText = document.getElementById('modal-brief-text');
+    if (briefSection && briefText) {
+      if (t.ai_brief) { briefSection.style.display='block'; briefText.textContent=t.ai_brief; }
+      else briefSection.style.display='none';
+    }
+  });
+
+  // Timeline events
+  window.DB.loadTicketEvents(dbId).then(events => {
+    const tl = document.getElementById('ticket-timeline');
+    if (!tl) return;
+    if (!events.length) {
+      tl.innerHTML = '<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text" style="color:#7a9aaa">No activity yet.</div></div></div>';
+      return;
+    }
+    tl.innerHTML = events.map(e => {
+      const dotColor = e.event_type==='rejected'?'#e85c4a':e.event_type==='nudge'?'#d47b1a':e.event_type==='approved'?'#2a9d6e':'';
+      const time = e.created_at ? new Date(e.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+      return `<div class="tl-item">
+        <div class="tl-dot" style="${dotColor?'background:'+dotColor:''}"></div>
+        <div><div class="tl-text">${e.body||''}</div><div class="tl-time">${time}</div></div>
+      </div>`;
+    }).join('');
+  });
+
+  // Messages
+  window.DB.loadMessages(dbId).then(messages => {
+    const thread = document.getElementById('conv-messages');
+    if (!thread) return;
+    if (!messages.length) { thread.innerHTML = '<div style="text-align:center;padding:16px;color:#7a9aaa;font-size:12px">No messages yet.</div>'; return; }
+    thread.innerHTML = messages.map(m => {
+      const isMe = window.currentUserProfile && window.currentUserProfile()?.email === m.sender_email;
+      const ini = (m.sender_name||'?').slice(0,2).toUpperCase();
+      const time = m.created_at ? new Date(m.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+      return `<div class="message${isMe?' message-right':''}">
+        <div class="msg-avatar" style="background:var(--rise-${isMe?'dark':'light'})">${ini}</div>
+        <div><div class="msg-bubble">${m.body}</div><div class="msg-time">${m.sender_name} · ${time}</div></div>
+      </div>`;
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+  });
 }
 function closeModal() {
   document.getElementById('ticket-modal').classList.remove('open');
@@ -3389,7 +3427,7 @@ async function submitTicket() {
   const submitterName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Unknown';
   const submitterEmail = profile ? profile.email : '';
 
-  // Auto-assign based on routing
+  // Auto-assign based on routing — use Supabase UUID (_dbId)
   const typeId = type === 'Social Media Post / Reel / Story' ? 'social'
     : type === 'Paid Ad Design (Google, Meta)' ? 'ads'
     : type === 'Print / Flyer / Signage' ? 'print'
@@ -3398,12 +3436,36 @@ async function submitTicket() {
     : type === 'Email Campaign' ? 'email'
     : type === 'Marketing Package Change' ? 'package' : '';
 
-  const routeInfo = routingMap[typeId];
+  // Find qualified staff with lowest ticket count
+  const skillRule = routingData.find(r => r.typeId === typeId);
+  const requiredSkill = skillRule ? skillRule.skillId : typeId;
+
+  // Check property specializations first
   let assignedDbId = null;
-  if (routeInfo && routeInfo.tier1 && routeInfo.tier1.length > 0) {
-    // Pick tier1 member with lowest active count (use first for now)
-    const assignee = routeInfo.tier1[0];
-    assignedDbId = assignee._dbId || null;
+  let assigneeName = 'Unassigned';
+
+  const qualified = teamData.filter(m =>
+    m.status === 'active' &&
+    (m.roleType === 'staff') &&
+    (m.skills || []).includes(requiredSkill)
+  );
+
+  // Property specialization override
+  const specialized = qualified.filter(m =>
+    m.properties && m.properties.includes(property)
+  );
+
+  const pool = specialized.length > 0 ? specialized : qualified;
+
+  if (pool.length > 0) {
+    // Pick first available (in production would check live counts)
+    const assignee = pool[0];
+    assignedDbId = assignee._dbId || assignee.id || null;
+    assigneeName = assignee.fname;
+  } else if (qualified.length === 0) {
+    // Escalate to director
+    const director = teamData.find(m => m.status === 'active' && m.roleType === 'director' && (m.skills||[]).includes(requiredSkill));
+    if (director) { assignedDbId = director._dbId || director.id || null; assigneeName = director.fname; }
   }
 
   const ticket = {
@@ -3442,9 +3504,9 @@ async function submitTicket() {
       submitterName, `${submitterName} submitted request from ${property} site team`, {});
 
     // If assigned, log that too
-    if (assignedDbId && routeInfo) {
+    if (assignedDbId) {
       await window.DB.logTicketEvent(saved.id, 'assigned',
-        'System', `Auto-assigned to ${routeInfo.tier1[0].fname} (lowest load — routing by skill)`, {});
+        'System', `Auto-assigned to ${assigneeName} (routing by skill: ${requiredSkill || typeId})`, {});
     }
 
     // Clear form
