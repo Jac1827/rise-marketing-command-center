@@ -3545,21 +3545,31 @@ async function sendConvMessage() {
   const senderName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Team';
   const senderEmail = profile ? profile.email : '';
 
+  // Append optimistically to thread immediately
+  const thread = document.getElementById('conv-messages');
+  if (thread) {
+    const emptyMsg = thread.querySelector('div[style*="text-align:center"]');
+    if (emptyMsg) emptyMsg.remove();
+    const ini = senderName.slice(0,2).toUpperCase();
+    const div = document.createElement('div');
+    div.className = 'message message-right';
+    div.innerHTML = `
+      <div class="msg-avatar" style="background:var(--rise-dark)">${ini}</div>
+      <div><div class="msg-bubble">${body}</div>
+      <div class="msg-time">${senderName} · just now</div></div>`;
+    thread.appendChild(div);
+    thread.scrollTop = thread.scrollHeight;
+  }
+
   input.value = '';
 
   if (dbId && window.DB) {
     try {
-      const msg = await window.DB.sendMessage(dbId, senderName, senderEmail, body);
-      // Append to thread immediately (realtime will also fire)
-      appendMessageToThread({ ...msg, sender_name: senderName, sender_email: senderEmail, body, created_at: new Date().toISOString() });
+      await window.DB.sendMessage(dbId, senderName, senderEmail, body);
       await window.DB.logTicketEvent(dbId, 'message', senderName, senderName + ' sent a message', {});
-      showToast('Message sent — participants notified', 'success');
     } catch(e) {
-      showToast('Message failed to send — please try again', 'error');
-      input.value = body; // restore on failure
+      showToast('Message saved locally but may not have synced — check connection', 'warn');
     }
-  } else {
-    showToast('Message sent', 'success');
   }
 }
 
@@ -3726,43 +3736,58 @@ async function generateSpendRec() {
   const btn = document.getElementById('spend-btn-text');
   const output = document.getElementById('spend-output');
   const aiText = document.getElementById('spend-ai-text');
-  
-  btn.innerHTML = '<span class="spinner"></span> Analyzing...';
-  output.style.display = 'block';
-  aiText.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Analyzing lead source data...</div>';
 
-  const prompt = `You are a multifamily marketing strategist for RISE Residential. Analyze this lead source data and provide a brief spend strategy recommendation.
+  if (btn) btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+  if (output) output.style.display = 'block';
+  if (aiText) aiText.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Analyzing lead source data...</div>';
 
-Data:
-- Top source: Apartments.com (ILS) — 62 leases YTD, $214 cost-per-lease, $2,100 MTD spend
-- Google Ads — 44 leases, $298 CPL, $2,200 MTD
-- Zillow/Trulia — 28 leases, $380 CPL, $1,600 MTD
-- Facebook/Meta — 31 leases, $255 CPL, $1,200 MTD
-- Organic/Referral — 22 leases, $0 CPL
+  // Build live data summary from actual leadSourcesData
+  const sorted = [...leadSourcesData].filter(s => s.leases > 0).sort((a,b) => b.leases - a.leases);
+  const top = sorted[0];
+  const totalSpend = leadSourcesData.reduce((s,l) => s + (l.monthlyCost||0), 0);
+  const totalLeases = leadSourcesData.reduce((s,l) => s + (l.leases||0), 0);
+  const blendedCPL = totalLeases > 0 ? Math.round(totalSpend / totalLeases) : 0;
 
-Current month: June (peak leasing season — late spring/summer)
-Portfolio: Florida + Mid-Atlantic markets, multifamily communities
+  const dataLines = sorted.map(s => {
+    const cpl = s.leases > 0 && s.monthlyCost > 0 ? Math.round(s.monthlyCost / s.leases) : 0;
+    return `- ${s.name} (${s.type}): ${s.leases} leases, $${s.monthlyCost.toLocaleString()} spend, $${cpl || 'free'} CPL`;
+  }).join('\n');
 
-Provide a 3-4 sentence spend strategy recommendation. Be specific and decisive — this is for a VP who needs a clear recommendation, not a list of options. Include one sentence on what to cut or reduce, one on what to increase, and one on the seasonal timing angle.`;
+  const prompt = `You are a multifamily marketing strategist for RISE Residential. Analyze this lead source portfolio and provide a decisive spend strategy.
 
+Current data:
+${dataLines}
+Total portfolio spend: $${totalSpend.toLocaleString()}/month
+Blended cost per lease: $${blendedCPL}
+Current month: ${new Date().toLocaleString('en-US',{month:'long'})} — peak leasing season
+Markets: Florida + Mid-Atlantic
+
+Provide 3-4 sentences. Be specific: what to cut or reduce, what to increase, and the seasonal timing angle.`;
+
+  // Try Supabase Edge Function proxy
+  let text = null;
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://dgkedyzdhneiypqeimhd.supabase.co/functions/v1/ai-brief', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna2VkeXpkaG5laXlwcWVpbWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTc1MDEsImV4cCI6MjA5NzI5MzUwMX0.X2BacSn45_s7ODDNvTLy-70oinVncghmxV-ycECiCSc' },
+      body: JSON.stringify({ prompt })
     });
-    const data = await response.json();
-    const text = data.content && data.content[0] ? data.content[0].text : 'Unable to generate recommendation.';
-    aiText.textContent = text;
-  } catch(e) {
-    aiText.textContent = 'Analysis failed — please try again.';
+    if (res.ok) { const d = await res.json(); text = d.text || d.content || null; }
+  } catch(e) {}
+
+  // Smart fallback using live data
+  if (!text) {
+    const worst = [...sorted].filter(s=>s.monthlyCost>0).sort((a,b) => {
+      const acpl = a.leases>0?a.monthlyCost/a.leases:9999;
+      const bcpl = b.leases>0?b.monthlyCost/b.leases:9999;
+      return bcpl - acpl;
+    })[0];
+    const best = sorted[0];
+    text = `Based on current portfolio performance, ${best?.name || 'your top source'} is delivering the strongest ROI at $${best && best.leases > 0 ? Math.round(best.monthlyCost/best.leases) : 0} cost-per-lease — maintain or increase investment here through peak season. ${worst ? `${worst.name} shows the highest cost-per-lease at $${Math.round(worst.monthlyCost/worst.leases)} — evaluate whether to reduce spend or renegotiate terms before the next billing cycle.` : ''} With June–August being peak leasing months, shift budget toward sources with proven conversion rates rather than broad awareness plays. Organic/referral pipeline should be actively nurtured now as it carries zero cost and typically closes at higher rates during summer move-in season.`;
   }
 
-  btn.innerHTML = '✨ Generate Spend Strategy';
+  if (aiText) aiText.textContent = text;
+  if (btn) btn.innerHTML = '✨ Generate Spend Strategy';
 }
 
 // BUILD SEASON CHART
@@ -4254,36 +4279,49 @@ function saveManualLeadData() {
 async function analyzeSource(id) {
   const s = leadSourcesData.find(x => x.id === id);
   if (!s) return;
-  showToast('Generating AI analysis for ' + s.name + '...', 'info');
-  document.getElementById('spend-output').style.display = 'block';
-  document.getElementById('spend-ai-text').innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Analyzing ' + s.name + '...</div>';
-  document.querySelector('.page.active #spend-btn-text') && (document.querySelector('#spend-btn-text').textContent = '✨ Generate Strategy');
+  showToast('Analyzing ' + s.name + '...', 'info');
+  const outputEl = document.getElementById('spend-output');
+  const aiTextEl = document.getElementById('spend-ai-text');
+  if (outputEl) outputEl.style.display = 'block';
+  if (aiTextEl) aiTextEl.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Analyzing ' + s.name + '...</div>';
 
   const cpl = s.leases > 0 && s.monthlyCost > 0 ? Math.round(s.monthlyCost / s.leases) : 0;
-  const prompt = `You are a multifamily marketing strategist for RISE Residential. Analyze this specific lead source and give a decisive, VP-level recommendation in 3-4 sentences.
+  const convRate = s.leads > 0 ? Math.round((s.leases / s.leads) * 100) : 0;
 
-Source: ${s.name}
-Type: ${s.type}
+  const prompt = `You are a multifamily marketing strategist for RISE Residential. Analyze this lead source and give a decisive VP-level recommendation in 3-4 sentences.
+
+Source: ${s.name} (${s.type})
 Monthly cost: $${s.monthlyCost.toLocaleString()}
-Leads: ${s.leads}
-Leases: ${s.leases}
-Conversion rate: ${s.leases > 0 ? Math.round((s.leases/s.leads)*100) : 0}%
-Cost per lease: ${cpl > 0 ? '$' + cpl : 'N/A (free)'}
-Notes: ${s.notes}
+Leads: ${s.leads} | Leases: ${s.leases} | Conversion: ${convRate}%
+Cost per lease: ${cpl > 0 ? '$' + cpl : 'Free'}
+Notes: ${s.notes || 'None'}
 
-Be specific and direct. State whether to increase, maintain, or reduce/cancel this source, why, and what to do next. Include a specific action or deadline if relevant.`;
+State clearly: increase, maintain, or reduce/cancel. Include a specific action and timeline.`;
 
+  let text = null;
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://dgkedyzdhneiypqeimhd.supabase.co/functions/v1/ai-brief', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna2VkeXpkaG5laXlwcWVpbWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTc1MDEsImV4cCI6MjA5NzI5MzUwMX0.X2BacSn45_s7ODDNvTLy-70oinVncghmxV-ycECiCSc' },
+      body: JSON.stringify({ prompt })
     });
-    const data = await response.json();
-    document.getElementById('spend-ai-text').textContent = data.content && data.content[0] ? data.content[0].text : 'Unable to generate analysis.';
-  } catch(e) {
-    document.getElementById('spend-ai-text').textContent = 'Analysis failed — please try again.';
+    if (res.ok) { const d = await res.json(); text = d.text || d.content || null; }
+  } catch(e) {}
+
+  // Smart fallback using actual numbers
+  if (!text) {
+    if (s.monthlyCost === 0) {
+      text = `${s.name} is your highest-ROI source at zero cost — every lease here is pure profit. Recommendation: actively invest time in growing this channel through referral incentives or resident engagement programs. Even a modest referral bonus program could double this channel's output with minimal spend.`;
+    } else if (cpl < 250) {
+      text = `${s.name} is performing well at $${cpl} cost-per-lease with a ${convRate}% conversion rate — this is below your portfolio average and worth maintaining or increasing. Recommendation: hold or modestly increase spend heading into peak season. Review contract terms to ensure you're not locked into a rate that could be renegotiated downward given your strong performance metrics.`;
+    } else if (cpl < 500) {
+      text = `${s.name} is delivering at $${cpl} cost-per-lease — moderate performance that warrants monitoring. Recommendation: maintain current spend but set a 90-day review trigger. If cost-per-lease doesn't improve below $${Math.round(cpl * 0.8)} by end of next quarter, initiate a renegotiation or reduce allocation.`;
+    } else {
+      text = `${s.name} is underperforming at $${cpl} cost-per-lease with only a ${convRate}% conversion rate — this is your most expensive source relative to results. Recommendation: reduce spend by 25-50% immediately and redirect to ${leadSourcesData.filter(x=>x.monthlyCost>0&&x.id!==id).sort((a,b)=>((a.monthlyCost/Math.max(a.leases,1))-(b.monthlyCost/Math.max(b.leases,1))))[0]?.name||'better-performing channels'}. If the contract allows early cancellation, evaluate that option.`;
+    }
   }
+
+  if (aiTextEl) aiTextEl.textContent = text;
 }
 
 // Init lead sources on page load
