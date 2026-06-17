@@ -708,7 +708,7 @@
     <div style="font-size:13px;color:#7a9aaa;margin-bottom:28px">RISE Residential · Sign in to continue</div>
     <div class="form-group" style="margin-bottom:12px">
       <label>Email address</label>
-      <input type="email" id="auth-email" placeholder="you@riseresidential.com" style="font-size:14px" onkeydown="if(event.key==='Enter')handleSignIn()">
+      <input type="email" id="auth-email" placeholder="you@riseresidential.com" style="font-size:14px" onkeydown="if(event.key==='Enter') handleSignIn()">
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="handleSignIn()" id="auth-btn">
       Send Magic Link
@@ -735,7 +735,7 @@
     <div class="notif-btn" onclick="showToast('3 approvals waiting for action','warn')">
       🔔<div class="notif-dot"></div>
     </div>
-    <div class="user-pill" onclick="cycleUser()" title="Click to sign out" oncontextmenu="event.preventDefault();signOut()">
+    <div class="user-pill" onclick="cycleUser()" title="Right-click to sign out" oncontextmenu="event.preventDefault(); window.signOut && window.signOut()">
       <div class="user-avatar" id="userInitials">JL</div>
       <span id="userName">Jac L. — VP Ops</span>
     </div>
@@ -2423,16 +2423,19 @@ function updateUserChip() {
   if (!currentUserProfile) return;
   const name = currentUserProfile.full_name || currentUserProfile.email.split('@')[0];
   const role = currentUserProfile.role_type;
+  const roleLabel = role === 'vp' ? 'VP Ops' : role === 'director' ? 'Director' : role === 'admin' ? 'Admin' : role === 'approver' ? 'Approver' : 'Team';
   const ini = name.slice(0,2).toUpperCase();
   const el = document.getElementById('userName');
   const av = document.getElementById('userInitials');
-  if (el) el.textContent = name + ' — ' + role;
+  if (el) el.textContent = name + ' — ' + roleLabel;
   if (av) av.textContent = ini;
-  // Show/hide bonus tab based on role
+  // Show bonus tab for director/vp/admin
   const bonusTab = document.getElementById('bonus-tab');
   if (bonusTab) {
     bonusTab.style.display = (role === 'director' || role === 'vp' || role === 'admin') ? 'block' : 'none';
   }
+  // Store role on window for UI script access
+  window._mccUserRole = role;
 }
 
 // ============================================================
@@ -2946,6 +2949,16 @@ async function bootApp() {
 // Expose to window for onclick handlers
 window.signIn = signIn;
 window.signOut = signOut;
+window.handleSignIn = async function() {
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const btn = document.getElementById('auth-btn');
+  const msg = document.getElementById('auth-message');
+  if (!email || !email.includes('@')) { if(msg){msg.textContent='Please enter a valid email';msg.style.color='#e85c4a';} return; }
+  if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  const ok = await signIn(email);
+  if (ok) { if(msg){msg.textContent='✓ Check your email for the sign-in link';msg.style.color='#2a9d6e';} if(btn)btn.textContent='Link sent — check your inbox'; }
+  else { if(btn){btn.disabled=false;btn.textContent='Send Magic Link';} if(msg){msg.textContent='Something went wrong — try again';msg.style.color='#e85c4a';} }
+};
 window.DB = DB;
 window.currentUserProfile = () => currentUserProfile;
 window.renderLiveTickets = renderLiveTickets;
@@ -3080,6 +3093,45 @@ let surveyContext     = {};
 function initials(m) { return ((m.fname||'')[0] + (m.lname||'')[0]).toUpperCase(); }
 
 // USER CYCLE
+// AUTH — plain global fallback so onclick="handleSignIn()" always works
+// The module script also sets window.handleSignIn after Supabase loads,
+// but this version fires immediately and delegates to it.
+function handleSignIn() {
+  const email = document.getElementById('auth-email') ? document.getElementById('auth-email').value.trim() : '';
+  const btn = document.getElementById('auth-btn');
+  const msg = document.getElementById('auth-message');
+  if (!email || !email.includes('@')) {
+    if (msg) { msg.textContent = 'Please enter a valid email address'; msg.style.color = '#e85c4a'; }
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  // Delegate to module's signIn once it's available
+  function trySignIn(attempts) {
+    if (window.signIn) {
+      window.signIn(email).then(ok => {
+        if (ok) {
+          if (msg) { msg.textContent = '✓ Check your email for the sign-in link'; msg.style.color = '#2a9d6e'; }
+          if (btn) btn.textContent = 'Link sent — check your inbox';
+        } else {
+          if (btn) { btn.disabled = false; btn.textContent = 'Send Magic Link'; }
+          if (msg) { msg.textContent = 'Something went wrong — try again'; msg.style.color = '#e85c4a'; }
+        }
+      });
+    } else if (attempts > 0) {
+      setTimeout(() => trySignIn(attempts - 1), 200);
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'Send Magic Link'; }
+      if (msg) { msg.textContent = 'App still loading — please wait a moment and try again'; msg.style.color = '#e85c4a'; }
+    }
+  }
+  trySignIn(20); // retry up to 20 times × 200ms = 4 seconds
+}
+
+function signOut() {
+  if (window.signOut && window.signOut !== signOut) {
+    window.signOut();
+  }
+}
 const users = [
   {initials:'JL', name:'Jac L. — VP Ops'},
   {initials:'RE', name:'Renee — Creative'},
@@ -5348,11 +5400,32 @@ function renderRatingsTable() {
 }
 
 // ROLE GATE for bonus tab
+function getBonusRole() {
+  // Primary: direct window property set by module after Supabase profile loads
+  if (window._mccUserRole) return window._mccUserRole;
+  // Secondary: window bridge function
+  if (window.currentUserProfile && typeof window.currentUserProfile === 'function') {
+    const profile = window.currentUserProfile();
+    if (profile && profile.role_type) return profile.role_type;
+  }
+  // Fallback: read from user chip label
+  const chip = document.getElementById('userName');
+  if (chip) {
+    const text = chip.textContent.toLowerCase();
+    if (text.includes('vp')) return 'vp';
+    if (text.includes('director')) return 'director';
+    if (text.includes('admin')) return 'admin';
+  }
+  return 'staff';
+}
+
 function checkBonusAccess() {
-  const currentRole = document.getElementById('userName') ? document.getElementById('userName').textContent : '';
-  const hasAccess = currentRole.includes('VP') || currentRole.includes('Director') || currentRole.includes('Fania') || currentRole.includes('Jac');
-  document.getElementById('bonus-locked').style.display = hasAccess ? 'none' : 'block';
-  document.getElementById('bonus-content').style.display = hasAccess ? 'block' : 'none';
+  const role = getBonusRole();
+  const hasAccess = role === 'vp' || role === 'director' || role === 'admin';
+  const locked = document.getElementById('bonus-locked');
+  const content = document.getElementById('bonus-content');
+  if (locked) locked.style.display = hasAccess ? 'none' : 'block';
+  if (content) content.style.display = hasAccess ? 'block' : 'none';
   if (hasAccess) {
     renderBonusCards();
     renderRatingsTable();
@@ -5360,46 +5433,10 @@ function checkBonusAccess() {
 }
 
 function showBonusTabIfAuthorized() {
+  // Called from module bootApp() after profile loads — always show
+  // checkBonusAccess() gates the content inside the tab
   const el = document.getElementById('bonus-tab');
   if (el) el.style.display = 'block';
-}
-
-// AUTH HANDLER
-async function handleSignIn() {
-  const email = document.getElementById('auth-email').value.trim();
-  const btn = document.getElementById('auth-btn');
-  const msg = document.getElementById('auth-message');
-  if (!email || !email.includes('@')) { msg.textContent = 'Please enter a valid email address'; msg.style.color='#e85c4a'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  msg.textContent = '';
-  const ok = await signIn(email);
-  if (ok) {
-    msg.textContent = '✓ Check your email for the sign-in link';
-    msg.style.color = '#2a9d6e';
-    btn.textContent = 'Link sent — check your inbox';
-  } else {
-    btn.disabled = false;
-    btn.textContent = 'Send Magic Link';
-    msg.textContent = 'Something went wrong — try again';
-    msg.style.color = '#e85c4a';
-  }
-}
-
-function saveBonusWeights() {
-  const total = bonusWeights.filter(w=>w.enabled).reduce((s,w)=>s+w.weight,0);
-  if (total !== 100) { showToast('Enabled weights must total exactly 100% — currently ' + total + '%', 'warn'); return; }
-  DB.saveBonusSettings(bonusWeights, bonusTargets);
-  showToast('Bonus weights saved', 'success');
-}
-
-function saveBonusTargets() {
-  DB.saveBonusSettings(bonusWeights, bonusTargets);
-  showToast('Bonus targets saved', 'success');
-}
-
-function saveSurveySettings() {
-  DB.saveBonusSettings(bonusWeights, bonusTargets);
 }
 
 // =============================================
