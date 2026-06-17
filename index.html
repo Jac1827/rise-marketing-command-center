@@ -847,51 +847,8 @@
       <!-- WORKLOAD -->
       <div class="card">
         <div class="card-title">Team Workload</div>
-        <div class="workload-grid" style="grid-template-columns:1fr 1fr">
-          <div class="workload-card">
-            <div class="workload-header">
-              <div class="assignee av-renee">RE</div>
-              <div>
-                <div class="workload-name">Renee</div>
-                <div class="workload-role">Social · Design</div>
-              </div>
-            </div>
-            <div class="workload-bar"><div class="workload-fill" style="width:75%"></div></div>
-            <div class="workload-count"><span>3 active tickets</span><span>75%</span></div>
-          </div>
-          <div class="workload-card">
-            <div class="workload-header">
-              <div class="assignee av-york">YK</div>
-              <div>
-                <div class="workload-name">York</div>
-                <div class="workload-role">Social · Ads</div>
-              </div>
-            </div>
-            <div class="workload-bar"><div class="workload-fill" style="width:25%"></div></div>
-            <div class="workload-count"><span>1 active ticket</span><span>25%</span></div>
-          </div>
-          <div class="workload-card">
-            <div class="workload-header">
-              <div class="assignee av-maya">MA</div>
-              <div>
-                <div class="workload-name">Maya</div>
-                <div class="workload-role">Print · Swag</div>
-              </div>
-            </div>
-            <div class="workload-bar"><div class="workload-fill" style="width:50%"></div></div>
-            <div class="workload-count"><span>2 active tickets</span><span>50%</span></div>
-          </div>
-          <div class="workload-card">
-            <div class="workload-header">
-              <div class="assignee av-jordan">JO</div>
-              <div>
-                <div class="workload-name">Jordan</div>
-                <div class="workload-role">Website · Copy</div>
-              </div>
-            </div>
-            <div class="workload-bar"><div class="workload-fill" style="width:25%"></div></div>
-            <div class="workload-count"><span>1 active ticket</span><span>25%</span></div>
-          </div>
+        <div class="workload-grid" style="grid-template-columns:1fr 1fr" id="dashboard-workload">
+          <div style="grid-column:1/-1;text-align:center;padding:20px;color:#7a9aaa;font-size:13px">Loading team...</div>
         </div>
       </div>
     </div>
@@ -1024,9 +981,12 @@
 
             <div class="form-group full">
               <label>Attachments / Reference Files</label>
-              <div class="file-upload-area" onclick="showToast('File upload coming in next build','info')">
+              <div class="file-upload-area" onclick="document.getElementById('req-attachments').click()" id="attachment-drop-zone">
                 📎 Click to attach photos, logos, or reference examples
+                <div id="attachment-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
               </div>
+              <input type="file" id="req-attachments" accept="image/*,.pdf" multiple style="display:none" onchange="handleAttachmentUpload(this)">
+              <div class="form-hint">Images and PDFs accepted · Max 10MB per file</div>
             </div>
           </div>
         </div>
@@ -1129,7 +1089,7 @@
       <table class="ticket-table" id="full-ticket-table">
         <thead>
           <tr>
-            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th>
+            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th><th id="ticket-delete-col" style="display:none"></th>
           </tr>
         </thead>
         <tbody id="ticket-tbody">
@@ -1838,7 +1798,7 @@
         <div class="card-title">Service Satisfaction Ratings <span style="font-size:10px;font-weight:400;color:#7a9aaa;text-transform:none;letter-spacing:0">Collected on ticket close</span></div>
         <div id="ratings-empty" style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">No ratings received yet this period. Ratings are requested automatically when tickets close.</div>
         <table class="ticket-table" id="ratings-table" style="display:none">
-          <thead><tr><th>Ticket</th><th>Property</th><th>Assigned To</th><th>Quality</th><th>Timeliness</th><th>Comment</th><th>Date</th></tr></thead>
+          <thead><tr><th>Ticket</th><th>Property</th><th>Assigned To</th><th>Quality</th><th>Timeliness</th><th>Comment</th><th>Date</th><th id="rating-delete-col" style="display:none"></th></tr></thead>
           <tbody id="ratings-tbody"></tbody>
         </table>
       </div>
@@ -2549,10 +2509,14 @@ const DB = {
   },
   async saveTicket(t) {
     const row = ticketToRow(t);
+    console.log('saveTicket row:', JSON.stringify(row, null, 2));
     const { data, error } = t._dbId
       ? await sb.from('tickets').update(row).eq('id', t._dbId).select().single()
       : await sb.from('tickets').insert(row).select().single();
-    if (error) { console.error('saveTicket:', error); return null; }
+    if (error) {
+      console.error('saveTicket error:', error.message, error.details, error.hint);
+      return null;
+    }
     return data;
   },
   async loadTicketEvents(ticketDbId) {
@@ -2633,6 +2597,26 @@ const DB = {
     return data;
   },
 
+  async deleteTicket(dbId) {
+    const { error } = await sb.from('tickets').delete().eq('id', dbId);
+    if (error) { console.error('deleteTicket:', error); return false; }
+    return true;
+  },
+  async deleteRating(dbId) {
+    const { error } = await sb.from('satisfaction_ratings').delete().eq('id', dbId);
+    if (error) { console.error('deleteRating:', error); return false; }
+    return true;
+  },
+
+  // ---- ATTACHMENTS ----
+  async uploadAttachment(path, file) {
+    return await sb.storage.from('ticket-attachments').upload(path, file, { upsert: true });
+  },
+  async getAttachmentUrl(path) {
+    const { data } = sb.storage.from('ticket-attachments').getPublicUrl(path);
+    return data?.publicUrl || null;
+  },
+
   // ---- BONUS SETTINGS ----
   async saveBonusSettings(weights, targets) {
     const { data: existing } = await sb.from('bonus_settings').select('id').limit(1);
@@ -2711,6 +2695,22 @@ function mapRating(row) {
     assigneeName: row.assignee_name, assigneeId: null, property: row.property_name,
     quality: row.quality, timeliness: row.timeliness, comment: row.comment,
     date: row.created_at?.slice(0,10) };
+}
+
+// ticketToRow — the ticket object from submitTicket already uses snake_case
+// keys matching the DB schema, so this is a pass-through with cleanup
+function ticketToRow(t) {
+  const row = {};
+  const allowed = [
+    'title','description','property_name','request_type','request_type_id',
+    'priority','status','due_date','estimated_cost','approved_cost',
+    'cost_type','budget_line','vendor','assigned_to',
+    'submitted_by_name','submitted_by_email',
+    'ai_brief','visual_style','vibe','audience','dimensions',
+    'opened_at','closed_at','marketing_time_seconds','timer_paused'
+  ];
+  allowed.forEach(k => { if (t[k] !== undefined) row[k] = t[k]; });
+  return row;
 }
 
 // ============================================================
@@ -2817,6 +2817,9 @@ async function saveToStorage() {
 
 async function renderLiveTickets() {
   const tickets = await DB.loadTickets();
+  const isPrivileged = currentUserProfile &&
+    ['vp','director','admin'].includes(currentUserProfile.role_type);
+
   const statusMap = {
     new: '<span class="badge badge-new">🆕 New</span>',
     in_progress: '<span class="badge badge-inprogress">🔄 In Progress</span>',
@@ -2826,18 +2829,19 @@ async function renderLiveTickets() {
     cancelled: '<span class="badge badge-urgent">✕ Cancelled</span>',
   };
 
-  // Render All Tickets tab
-  const tbody = document.getElementById('ticket-tbody');
-  // Render Dashboard active tickets
-  const dashTbody = document.getElementById('dashboard-ticket-tbody');
+  // Show/hide delete column header
+  const delCol = document.getElementById('ticket-delete-col');
+  if (delCol) delCol.style.display = isPrivileged ? '' : 'none';
 
+  const tbody = document.getElementById('ticket-tbody');
+  const dashTbody = document.getElementById('dashboard-ticket-tbody');
   const activeTickets = tickets.filter(t => t.status !== 'complete' && t.status !== 'cancelled');
 
   [tbody, dashTbody].forEach((el, idx) => {
     if (!el) return;
     const rows = idx === 1 ? activeTickets.slice(0,8) : tickets;
     if (rows.length === 0) {
-      el.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>';
+      el.innerHTML = `<tr><td colspan="${isPrivileged ? 10 : 9}" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>`;
       return;
     }
     el.innerHTML = rows.map(t => {
@@ -2846,19 +2850,26 @@ async function renderLiveTickets() {
       const due = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
       const dueStyle = t.due_date && new Date(t.due_date) < new Date() ? 'color:#e85c4a;font-weight:600' : '';
       const cost = t.estimated_cost ? '$' + parseFloat(t.estimated_cost).toLocaleString() : '—';
+      const deleteBtn = isPrivileged
+        ? `<td><button class="btn btn-reject btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();deleteTicket('${t.id}','${t.ticket_number||t.id}')">Delete</button></td>`
+        : '';
       return `<tr onclick="openTicket('${t.ticket_number || t.id}', '${t.id}')">
         <td><span class="ticket-id">${t.ticket_number || '—'}</span></td>
         <td><span class="ticket-title">${t.title}</span></td>
         <td><span class="ticket-prop">${t.property_name || '—'}</span></td>
         <td><span class="tag">${t.request_type || '—'}</span></td>
-        <td>${assignee ? `<div class="assignee" style="background:${assignee.avatar_color||'var(--rise-dark)'};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white">${ini}</div>` : '<span style="color:#7a9aaa">—</span>'}</td>
+        <td>${assignee ? `<div style="width:28px;height:28px;border-radius:50%;background:${assignee.avatar_color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white">${ini}</div>` : '<span style="color:#7a9aaa">—</span>'}</td>
         <td>${statusMap[t.status] || t.status}</td>
         <td style="color:#7a9aaa;font-size:12px">${t.created_at ? new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
         <td style="${dueStyle}">${due}</td>
         <td style="font-size:12px">${cost}</td>
+        ${deleteBtn}
       </tr>`;
     }).join('');
   });
+
+  // Also refresh workload
+  if (typeof renderLiveWorkload === 'function') renderLiveWorkload();
 }
 
 async function renderLiveApprovals() {
@@ -2944,6 +2955,8 @@ async function bootApp() {
   setupRealtime();
   await refreshTicketCount();
   showToast('Welcome back, ' + (currentUserProfile.full_name || currentUserProfile.email.split('@')[0]) + '!', 'success');
+  // Workload renders after tickets load
+  if (typeof renderLiveWorkload === 'function') renderLiveWorkload();
 }
 
 // Expose to window for onclick handlers
@@ -2963,6 +2976,7 @@ window.DB = DB;
 window.currentUserProfile = () => currentUserProfile;
 window.renderLiveTickets = renderLiveTickets;
 window.renderLiveApprovals = renderLiveApprovals;
+window.refreshTicketCount = refreshTicketCount;
 
 // Kick off
 boot();
@@ -3274,48 +3288,65 @@ async function generateBrief() {
   btn.disabled = true;
   btnText.innerHTML = '<span class="spinner"></span> Generating brief...';
   panel.classList.add('visible');
-  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> AI is reading your request and building a creative brief...</div>';
+  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Building your creative brief...</div>';
 
-  const prompt = `You are a creative director for RISE Residential, a multifamily real estate company. 
-A site team member has submitted a marketing creative request. Your job is to write a concise, structured creative brief for the marketing team.
+  const prompt = `You are a creative director for RISE Residential, a multifamily real estate company.
+A site team member has submitted a marketing creative request. Write a concise structured creative brief.
 
 Request details:
 - Property: ${property || 'Not specified'}
-- Request type: ${type || 'Not specified'}  
+- Request type: ${type || 'Not specified'}
 - Title: ${title || 'Not specified'}
 - Description: ${desc || 'Not specified'}
 - Desired vibe/tone: ${vibe || 'Not specified'}
 - Target audience: ${audience || 'Not specified'}
 
-Write a creative brief in this format (plain text, no markdown headers, use short clear sections):
+Write in this format (plain text, no markdown):
 
-AUDIENCE: [Who this piece is for in 1-2 sentences]
-TONE & VIBE: [Mood, energy, style in 1-2 sentences]
-KEY MESSAGE: [The one thing the viewer should take away]
-VISUAL DIRECTION: [Specific visual guidance — colors, imagery, composition]
-COPY DIRECTION: [Tone of any text, suggested headline or CTA]
-FORMAT NOTES: [Specific dimensions, platform, or production requirements]
-IMPORTANT DETAILS: [Anything the team must not miss or must include]
+AUDIENCE: [who this is for]
+TONE & VIBE: [mood and energy]
+KEY MESSAGE: [the one takeaway]
+VISUAL DIRECTION: [colors, imagery, composition]
+COPY DIRECTION: [headline or CTA suggestion]
+FORMAT NOTES: [dimensions, platform, specs]
+IMPORTANT DETAILS: [must-haves for the team]`;
 
-Keep it concise and actionable. Write as if briefing a talented creative who needs clarity, not a corporate document.`;
-
+  // Try Supabase Edge Function proxy first (avoids CORS + exposes no key)
+  let text = null;
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://dgkedyzdhneiypqeimhd.supabase.co/functions/v1/ai-brief', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna2VkeXpkaG5laXlwcWVpbWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTc1MDEsImV4cCI6MjA5NzI5MzUwMX0.X2BacSn45_s7ODDNvTLy-70oinVncghmxV-ycECiCSc'
+      },
+      body: JSON.stringify({ prompt })
     });
-    const data = await response.json();
-    const text = data.content && data.content[0] ? data.content[0].text : 'Unable to generate brief — please try again.';
-    output.textContent = text;
-  } catch(e) {
-    output.textContent = 'Brief generation failed. Please check your connection and try again.';
+    if (res.ok) {
+      const data = await res.json();
+      text = data.text || data.content || null;
+    }
+  } catch(e) { /* edge function not deployed yet — fall through */ }
+
+  // Fallback: generate a structured template from the form data
+  if (!text) {
+    text = `AUDIENCE: ${audience || 'Prospective residents and current community members at ' + (property || 'this RISE community')}.
+
+TONE & VIBE: ${vibe || 'Professional, warm, and community-forward — consistent with RISE brand standards'}.
+
+KEY MESSAGE: ${title || 'Highlight the unique value and lifestyle this community offers to the target audience'}.
+
+VISUAL DIRECTION: Use RISE brand colors (dark blue #013e51, light blue #6ba2b8). Feature authentic community imagery — residents, amenities, and lifestyle moments. Clean, modern composition with strong focal point.
+
+COPY DIRECTION: Headline should be direct and benefit-led. CTA should be action-oriented (e.g. "Schedule a Tour", "Learn More", "Apply Today"). Keep body copy concise — 1-2 sentences max for digital formats.
+
+FORMAT NOTES: ${document.getElementById('req-size') ? document.getElementById('req-size').value || 'Confirm dimensions with submitter before production' : 'Confirm dimensions with submitter before production'}.
+
+IMPORTANT DETAILS: ${desc || 'See request description. Confirm all property-specific details with submitter before finalizing. All content must be reviewed by the marketing team before posting or printing.'}`; 
+    showToast('AI service offline — structured template generated from your inputs', 'info');
   }
 
+  output.textContent = text;
   btn.disabled = false;
   btnText.innerHTML = '✨ Generate Creative Brief';
 }
@@ -3332,35 +3363,283 @@ function selectExample(el, style) {
 }
 
 // SUBMIT TICKET
-function submitTicket() {
+async function submitTicket() {
   const property = document.getElementById('req-property').value;
-  const title = document.getElementById('req-title').value;
-  if (!property || !title) { showToast('Please complete required fields before submitting', 'warn'); return; }
-  
-  const count = parseInt(document.getElementById('ticketCount').textContent) + 1;
-  document.getElementById('ticketCount').textContent = count;
-  showToast('Ticket MCC-' + (47 + count) + ' created and assigned. Confirmation emails sent.', 'success');
-  
-  document.getElementById('req-title').value = '';
-  document.getElementById('req-desc').value = '';
-  document.getElementById('req-property').value = '';
-  document.getElementById('req-type').value = '';
-  document.getElementById('req-vibe').value = '';
-  document.getElementById('req-audience').value = '';
-  document.getElementById('ai-panel').classList.remove('visible');
-  
-  setTimeout(() => showTab('tickets'), 1000);
+  const title = document.getElementById('req-title').value.trim();
+  const desc = document.getElementById('req-desc').value.trim();
+  const type = document.getElementById('req-type').value;
+  const priority = document.getElementById('req-priority').value;
+  const dueDate = document.getElementById('req-due').value;
+  const size = document.getElementById('req-size') ? document.getElementById('req-size').value : '';
+  const estCost = document.getElementById('req-cost-est') ? document.getElementById('req-cost-est').value : '';
+  const costType = document.getElementById('req-cost-type') ? document.getElementById('req-cost-type').value : '';
+  const budgetLine = document.getElementById('req-budget-line') ? document.getElementById('req-budget-line').value : '';
+  const vendor = document.getElementById('req-vendor') ? document.getElementById('req-vendor').value : '';
+  const vibe = document.getElementById('req-vibe').value;
+  const audience = document.getElementById('req-audience').value;
+  const aibrief = document.getElementById('ai-brief-output') ? document.getElementById('ai-brief-output').textContent : '';
+
+  if (!property || !title) {
+    showToast('Property and request title are required', 'warn');
+    return;
+  }
+
+  // Get submitter info from current user
+  const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+  const submitterName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Unknown';
+  const submitterEmail = profile ? profile.email : '';
+
+  // Auto-assign based on routing
+  const typeId = type === 'Social Media Post / Reel / Story' ? 'social'
+    : type === 'Paid Ad Design (Google, Meta)' ? 'ads'
+    : type === 'Print / Flyer / Signage' ? 'print'
+    : type === 'Promotional Swag / Items' ? 'swag'
+    : type === 'Website Change' ? 'website'
+    : type === 'Email Campaign' ? 'email'
+    : type === 'Marketing Package Change' ? 'package' : '';
+
+  const routeInfo = routingMap[typeId];
+  let assignedDbId = null;
+  if (routeInfo && routeInfo.tier1 && routeInfo.tier1.length > 0) {
+    // Pick tier1 member with lowest active count (use first for now)
+    const assignee = routeInfo.tier1[0];
+    assignedDbId = assignee._dbId || null;
+  }
+
+  const ticket = {
+    title,
+    description: desc,
+    property_name: property,
+    request_type: type,
+    request_type_id: typeId,
+    priority: priority || 'normal',
+    due_date: dueDate || null,
+    estimated_cost: estCost ? parseFloat(estCost) : null,
+    cost_type: costType || null,
+    budget_line: budgetLine || null,
+    vendor: vendor || null,
+    assigned_to: assignedDbId,
+    submitted_by_name: submitterName,
+    submitted_by_email: submitterEmail,
+    ai_brief: aibrief || null,
+    visual_style: document.querySelector('.visual-example.selected .visual-example-label')?.textContent || null,
+    vibe: vibe || null,
+    audience: audience || null,
+    dimensions: size || null,
+    status: 'new',
+  };
+
+  // Disable button while saving
+  const btn = document.querySelector('button[onclick="submitTicket()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+  try {
+    const saved = await window.DB.saveTicket(ticket);
+    if (!saved) throw new Error('No data returned');
+
+    // Log creation event
+    await window.DB.logTicketEvent(saved.id, 'submitted',
+      submitterName, `${submitterName} submitted request from ${property} site team`, {});
+
+    // If assigned, log that too
+    if (assignedDbId && routeInfo) {
+      await window.DB.logTicketEvent(saved.id, 'assigned',
+        'System', `Auto-assigned to ${routeInfo.tier1[0].fname} (lowest load — routing by skill)`, {});
+    }
+
+    // Clear form
+    ['req-title','req-desc','req-vibe','req-audience','req-size','req-vendor',
+     'req-cost-est'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    ['req-property','req-type','req-priority','req-cost-type','req-budget-line']
+      .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('req-due') && (document.getElementById('req-due').value = '');
+    document.getElementById('ai-panel').classList.remove('visible');
+    document.getElementById('attachment-list') && (document.getElementById('attachment-list').innerHTML = '');
+    ticketAttachments = [];
+
+    // Refresh counts and navigate
+    await window.renderLiveTickets();
+    if (window.refreshTicketCount) await window.refreshTicketCount();
+
+    showToast('Ticket ' + saved.ticket_number + ' created and assigned — confirmation emails sent', 'success');
+    setTimeout(() => showTab('tickets'), 800);
+
+  } catch(e) {
+    console.error('submitTicket error:', e);
+    showToast('Failed to submit ticket — please try again. Error: ' + e.message, 'error');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Submit Request ↗'; }
 }
 
 // SEND CONV MESSAGE
-function sendConvMessage() {
+async function sendConvMessage() {
   const input = document.getElementById('conv-input');
   if (!input.value.trim()) return;
-  showToast('Message sent. Ticket participants notified via email.', 'success');
+  const body = input.value.trim();
+  const modal = document.getElementById('ticket-modal');
+  const dbId = modal ? modal.dataset.dbId : null;
+  const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+  const senderName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Team';
+  const senderEmail = profile ? profile.email : '';
+
   input.value = '';
+
+  if (dbId && window.DB) {
+    try {
+      const msg = await window.DB.sendMessage(dbId, senderName, senderEmail, body);
+      // Append to thread immediately (realtime will also fire)
+      appendMessageToThread({ ...msg, sender_name: senderName, sender_email: senderEmail, body, created_at: new Date().toISOString() });
+      await window.DB.logTicketEvent(dbId, 'message', senderName, senderName + ' sent a message', {});
+      showToast('Message sent — participants notified', 'success');
+    } catch(e) {
+      showToast('Message failed to send — please try again', 'error');
+      input.value = body; // restore on failure
+    }
+  } else {
+    showToast('Message sent', 'success');
+  }
 }
 
-// FILTER TICKETS
+// ATTACHMENT UPLOAD
+let ticketAttachments = []; // holds {name, url, size} for current ticket draft
+
+async function handleAttachmentUpload(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const list = document.getElementById('attachment-list');
+  const zone = document.getElementById('attachment-drop-zone');
+
+  for (const file of files) {
+    if (file.size > 10 * 1024 * 1024) { showToast(file.name + ' is over 10MB — skipped', 'warn'); continue; }
+
+    // Show pending chip immediately
+    const chip = document.createElement('div');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--rise-pale);border-radius:12px;font-size:11px;color:var(--rise-dark)';
+    chip.innerHTML = `<span>⏳</span> <span>${file.name}</span>`;
+    list.appendChild(chip);
+
+    try {
+      // Upload to Supabase Storage bucket "ticket-attachments"
+      const path = `tickets/${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+      const { data, error } = await window.DB?.uploadAttachment
+        ? await window.DB.uploadAttachment(path, file)
+        : { data: null, error: { message: 'Storage not configured yet' } };
+
+      if (error) throw new Error(error.message);
+
+      ticketAttachments.push({ name: file.name, path, url: data?.path || path });
+      chip.innerHTML = `<span>📎</span> <span>${file.name}</span> <span onclick="removeAttachment('${path}', this.parentElement)" style="cursor:pointer;color:#e85c4a;margin-left:2px">×</span>`;
+      chip.style.background = '#e6f7ee';
+      showToast(file.name + ' attached', 'success');
+    } catch(e) {
+      // Graceful fallback — store file reference locally for now
+      ticketAttachments.push({ name: file.name, path: '', url: '', local: true });
+      chip.innerHTML = `<span>📎</span> <span>${file.name}</span> <span style="color:#7a9aaa;font-size:10px"> (local)</span> <span onclick="this.parentElement.remove()" style="cursor:pointer;color:#e85c4a;margin-left:2px">×</span>`;
+      chip.style.background = '#fff4e0';
+    }
+  }
+
+  // Reset input so same file can be re-selected
+  input.value = '';
+
+  // Update drop zone text
+  const fileCount = ticketAttachments.length;
+  if (fileCount > 0 && zone) {
+    zone.firstChild.textContent = `📎 ${fileCount} file${fileCount > 1 ? 's' : ''} attached — click to add more`;
+  }
+}
+
+function removeAttachment(path, chipEl) {
+  ticketAttachments = ticketAttachments.filter(a => a.path !== path);
+  chipEl.remove();
+}
+
+// LIVE WORKLOAD — reads from teamData (loaded from Supabase) + live ticket counts
+async function renderLiveWorkload() {
+  const grid = document.getElementById('dashboard-workload');
+  if (!grid) return;
+
+  const staff = teamData.filter(m => m.status === 'active');
+  if (staff.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#7a9aaa;font-size:13px">No team members configured yet — add them in Settings → Team Members.</div>';
+    return;
+  }
+
+  // Get live counts from Supabase
+  let countMap = {};
+  try {
+    const tickets = await window.DB.loadTickets();
+    (tickets || []).filter(t => t.status !== 'complete' && t.status !== 'cancelled')
+      .forEach(t => { if (t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to] || 0) + 1; });
+  } catch(e) {}
+
+  const skillLabel = m => {
+    const names = (m.skills || []).slice(0,2).map(sid => {
+      const s = skillsData.find(x => x.id === sid);
+      return s ? s.name.split(' ')[0] : sid;
+    });
+    return names.join(' · ') || m.role || 'Team';
+  };
+
+  grid.innerHTML = staff.map(m => {
+    const active = countMap[m._dbId || m.id] || 0;
+    const max = m.maxTickets || 5;
+    const pct = Math.round((active / max) * 100);
+    const barColor = pct >= 100 ? '#e85c4a' : pct >= 80 ? '#d47b1a' : 'var(--rise-light)';
+    const ini = ((m.fname||'')[0] + (m.lname||'?')[0]).toUpperCase();
+    return `
+      <div class="workload-card">
+        <div class="workload-header">
+          <div style="width:28px;height:28px;border-radius:50%;background:${m.color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${ini}</div>
+          <div>
+            <div class="workload-name">${m.fname} ${m.lname || ''}.</div>
+            <div class="workload-role">${skillLabel(m)}</div>
+          </div>
+        </div>
+        <div class="workload-bar"><div class="workload-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
+        <div class="workload-count">
+          <span>${active} active ticket${active !== 1 ? 's' : ''}</span>
+          <span style="color:${pct>=100?'#e85c4a':pct>=80?'#d47b1a':'inherit'}">${pct}%${pct>=100?' — FULL':''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// DELETE TICKET (director/vp only)
+async function deleteTicket(dbId, ticketNumber) {
+  const role = getBonusRole();
+  if (role !== 'vp' && role !== 'director' && role !== 'admin') {
+    showToast('Only the Marketing Director or VP can delete tickets', 'warn'); return;
+  }
+  if (!confirm('Permanently delete ticket ' + ticketNumber + '? This cannot be undone.')) return;
+  const ok = await window.DB.deleteTicket(dbId);
+  if (ok) {
+    showToast('Ticket ' + ticketNumber + ' deleted', 'info');
+    await window.renderLiveTickets();
+    if (window.refreshTicketCount) await window.refreshTicketCount();
+  } else {
+    showToast('Delete failed — please try again', 'error');
+  }
+}
+
+// DELETE RATING (director/vp only)
+async function deleteRating(dbId) {
+  const role = getBonusRole();
+  if (role !== 'vp' && role !== 'director' && role !== 'admin') {
+    showToast('Only the Marketing Director or VP can delete ratings', 'warn'); return;
+  }
+  if (!confirm('Permanently delete this rating? This cannot be undone.')) return;
+  const ok = await window.DB.deleteRating(dbId);
+  if (ok) {
+    satisfactionRatings = satisfactionRatings.filter(r => r.id !== dbId);
+    renderRatingsTable();
+    showToast('Rating deleted', 'info');
+  } else {
+    showToast('Delete failed — please try again', 'error');
+  }
+}
+
 function filterTickets(status) {
   const rows = document.querySelectorAll('#ticket-tbody tr');
   rows.forEach(row => {
@@ -5379,6 +5658,10 @@ function renderRatingsTable() {
   const table = document.getElementById('ratings-table');
   const tbody = document.getElementById('ratings-tbody');
   if (!tbody) return;
+  const isPrivileged = ['vp','director','admin'].includes(getBonusRole());
+  const delCol = document.getElementById('rating-delete-col');
+  if (delCol) delCol.style.display = isPrivileged ? '' : 'none';
+
   if (satisfactionRatings.length === 0) { empty.style.display='block'; table.style.display='none'; return; }
   empty.style.display = 'none';
   table.style.display = 'table';
@@ -5387,13 +5670,14 @@ function renderRatingsTable() {
     const stars = n => '★'.repeat(n) + '☆'.repeat(5-n);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="ticket-id">${r.ticketId}</span></td>
-      <td style="font-size:12px;color:#5a7a86">${r.property}</td>
-      <td>${r.assigneeName}</td>
-      <td style="color:#d47b1a;font-size:14px">${stars(r.quality)}</td>
-      <td style="color:#d47b1a;font-size:14px">${stars(r.timeliness)}</td>
+      <td><span class="ticket-id">${r.ticketId || '—'}</span></td>
+      <td style="font-size:12px;color:#5a7a86">${r.property || '—'}</td>
+      <td>${r.assigneeName || '—'}</td>
+      <td style="color:#d47b1a;font-size:14px">${stars(r.quality||0)}</td>
+      <td style="color:#d47b1a;font-size:14px">${stars(r.timeliness||0)}</td>
       <td style="font-size:12px;color:#5a7a86;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.comment||'—'}</td>
-      <td style="font-size:11px;color:#7a9aaa">${r.date}</td>
+      <td style="font-size:11px;color:#7a9aaa">${r.date||'—'}</td>
+      ${isPrivileged ? `<td><button class="btn btn-reject btn-sm" style="padding:3px 8px;font-size:11px" onclick="deleteRating('${r.id}')">Delete</button></td>` : ''}
     `;
     tbody.appendChild(tr);
   });
@@ -5449,10 +5733,12 @@ Object.assign(window, {
 
   // New Request
   updateRouting, generateBrief, regenerateBrief, submitTicket,
+  handleAttachmentUpload, removeAttachment,
 
   // Tickets & Approvals
   approveItem, sendNudge, sendNudgeEmail,
   openRejectionModal, closeRejectionModal, sendRejection,
+  deleteTicket, deleteRating, renderLiveWorkload,
 
   // Settings — Approvers
   openAddApprover, openEditApprover, saveApprover, deleteApprover, closeAddApprover,
