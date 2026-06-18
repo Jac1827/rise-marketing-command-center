@@ -2866,11 +2866,24 @@ async function renderLiveApprovals() {
     list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No approvals pending</div><div style="font-size:13px;color:#7a9aaa">All tickets are moving — nothing waiting on GMs or Regionals right now.</div></div>';
     return;
   }
-  list.innerHTML = pending.map(t => `
+  const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
+  list.innerHTML = pending.map(t => {
+    const assignee = t.team_members;
+    const assigneeName = assignee ? assignee.fname + ' ' + (assignee.lname||'') : 'Team';
+    const assigneeEmail = assignee?.email || '';
+    // Find applicable approvers for this property
+    const propApprovers = approversData.filter(a =>
+      a.status === 'active' && (a.properties.length === 0 || a.properties.includes(t.property_name))
+    );
+    const primaryApprover = propApprovers[0];
+    const approverDisplayName = primaryApprover ? primaryApprover.fname + ' ' + (primaryApprover.lname||'') : 'Approver';
+    const approverRole = primaryApprover?.role || 'Regional';
+
+    return `
     <div class="approval-card${t.priority === 'urgent' ? ' urgent' : ''}">
       <div class="approval-header">
         <div>
-          <div class="approval-title">${t.title}</div>
+          <div class="approval-title">${t.title} <span style="font-size:11px;color:#7a9aaa;font-weight:400">— Assigned to ${assigneeName}</span></div>
           <div class="approval-meta">${t.ticket_number} · ${t.property_name || '—'} · ${t.request_type || '—'} · Submitted by ${t.submitted_by_name || 'unknown'}</div>
         </div>
         <span class="badge badge-approval">⏳ Awaiting Approval</span>
@@ -2894,12 +2907,12 @@ async function renderLiveApprovals() {
       </div>`}
       <div class="approval-actions" style="margin-top:12px">
         <button class="btn btn-approve" onclick="approveItem(this,'${t.ticket_number}','${t.id}')">✓ Approve & Notify Team</button>
-        <button class="btn btn-reject" onclick="openRejectionModal('${t.ticket_number}','${t.team_members?.fname||'Team'}','${t.title}','${t.team_members?.email||''}','${t.submitted_by_name||'Submitter'}')">✕ Request Changes</button>
+        <button class="btn btn-reject" onclick="openRejectionModal('${t.ticket_number}','${assigneeName}','${t.title}','${assigneeEmail}','${t.submitted_by_name||'Submitter'}','${t.id}','${t.submitted_by_email||''}')">✕ Request Changes</button>
         <button class="btn btn-secondary btn-sm" onclick="openTicket('${t.ticket_number}','${t.id}')">View Full Ticket</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendNudge('${t.ticket_number}','Approver','Regional','${t.title}')" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
+        <button class="btn btn-secondary btn-sm" onclick="sendNudge('${t.ticket_number}','${approverDisplayName}','${approverRole}','${t.title}','${t.id}')" style="margin-left:auto;color:#d47b1a;border-color:#fad897">👋 Nudge Approver</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ============================================================
@@ -3052,12 +3065,7 @@ let editingMemberId  = null;
 let editingPropertyId= null;
 
 // APPROVER DATA
-const DEFAULT_APPROVERS = [
-  {id:'ap-1', fname:'Sarah', lname:'Rodriguez', email:'sarah.r@riseresidential.com', role:'Regional', authority:'all', spendLimit:'', properties:['Nocatee','Glen Kernan Park (GKP)','Viera','Florence Villa','Doro High Rise','Flagler','Sereno','Citrus Ridge','Bartram','St. Augustine'], status:'active'},
-  {id:'ap-2', fname:'Mike', lname:'Torres', email:'mike.t@riseresidential.com', role:'Regional', authority:'all', spendLimit:'', properties:['Beacon / Poplar Hall','Maple Hall (NJIT)'], status:'active'},
-  {id:'ap-3', fname:'GM', lname:'Torres', email:'gm.gkp@rise.com', role:'GM', authority:'spend', spendLimit:'2000', properties:['Glen Kernan Park (GKP)'], status:'active'},
-  {id:'ap-4', fname:'GM', lname:'Chen', email:'gm.viera@rise.com', role:'GM', authority:'spend', spendLimit:'2500', properties:['Viera'], status:'active'},
-];
+const DEFAULT_APPROVERS = []; // approvers load from Supabase only — never from defaults
 
 // All live data loads from Supabase via DB.loadAll() — never from localStorage
 let approversData    = [];
@@ -3796,6 +3804,33 @@ async function saveTicketChanges() {
     if (assignTo) updates.assigned_to = assignTo;
     if (status === 'complete') updates.closed_at = new Date().toISOString();
     await window.DB.supabaseClient().from('tickets').update(updates).eq('id', dbId);
+
+    // If moving to awaiting_approval — auto-open email to all approvers
+    if (status === 'awaiting_approval') {
+      const tickets = await window.DB.loadTickets();
+      const t = tickets.find(x => x.id === dbId);
+      if (t) {
+        const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
+        const property = propertiesData.find(p => p.name === t.property_name);
+        const propApprovers = approversData.filter(a =>
+          a.status === 'active' && (a.properties.length === 0 || a.properties.includes(t.property_name))
+        );
+        const recipients = [
+          ...propApprovers.map(a => a.email),
+          property?.gmEmail,
+          property?.regionalEmail
+        ].filter(Boolean).filter((e,i,arr) => arr.indexOf(e) === i);
+
+        if (recipients.length > 0) {
+          const firstApprover = propApprovers[0];
+          const greeting = firstApprover ? 'Hi ' + firstApprover.fname + ',' : 'Hi,';
+          const subject = encodeURIComponent(`Approval Required: ${t.ticket_number} — ${t.title}`);
+          const body = `${greeting}\n\nYour approval is required on the following marketing request:\n\nTicket: ${t.ticket_number} — ${t.title}\nProperty: ${t.property_name || '—'}\nRequest type: ${t.request_type || '—'}\n${t.estimated_cost ? 'Estimated cost: $' + parseFloat(t.estimated_cost).toLocaleString() + '\n' : ''}Submitted by: ${t.submitted_by_name || '—'}\n\nClick here to review and approve: ${appUrl}\n\nThis request is waiting on your sign-off before the marketing team can proceed. The team's SLA clock is paused until you respond.\n\nThank you,\nRISE Marketing Team`;
+          window.open(`mailto:${recipients.join(';')}?subject=${encodeURIComponent(subject.replace(/%20/g,' '))}&body=${encodeURIComponent(body)}`, '_blank');
+          showToast('Approval email opened for ' + recipients.length + ' approver' + (recipients.length > 1 ? 's' : ''), 'info');
+        }
+      }
+    }
     const assigneeName = document.getElementById('modal-assign-select').selectedOptions[0]?.text || '';
     await window.DB.logTicketEvent(dbId, 'system', actorName,
       `${actorName} updated — status: ${status}${assignTo ? ' · assigned to: ' + assigneeName.split('·')[0].trim() : ''}`, {});
@@ -4130,42 +4165,60 @@ async function executeBulkReassign() {
 
   const tickets = await window.DB.loadTickets();
   const mine = tickets.filter(t => t.assigned_to === fromId && !['complete','cancelled'].includes(t.status));
-  if (!mine.length) { showToast('No open tickets to reassign', 'info'); return; }
+  if (!mine.length) { showToast('No open tickets to reassign for this person', 'info'); return; }
 
   const profile = window.currentUserProfile ? window.currentUserProfile() : null;
   const actor   = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Director';
   let count = 0;
 
+  // Pre-fetch active counts for load balancing
+  const { data: activeCounts } = await window.DB.supabaseClient()
+    .from('tickets').select('assigned_to')
+    .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter']);
+  const cMap = {};
+  (activeCounts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to] = (cMap[tc.assigned_to]||0)+1; });
+
   for (const t of mine) {
-    let assignTo = toId;
-    // If auto-assign, run routing logic
+    let assignTo = toId || null;
+
     if (!assignTo) {
+      // Auto-assign by skill + lowest load
+      const skillRule = routingData.find(r => r.typeId === t.request_type_id);
+      const requiredSkill = skillRule?.skillId || t.request_type_id || '';
       try {
-        const skillRule = routingData.find(r => r.typeId === t.request_type_id);
-        const requiredSkill = skillRule?.skillId || t.request_type_id;
-        const { data: eligible } = await window.DB.supabaseClient()
-          .from('team_members').select('id, fname, role_type, skills, max_tickets')
-          .eq('status','active').contains('skills', [requiredSkill]).neq('id', fromId);
+        let query = window.DB.supabaseClient().from('team_members')
+          .select('id, fname, skills, max_tickets').eq('status','active').neq('id', fromId);
+        if (requiredSkill) query = query.contains('skills', [requiredSkill]);
+        const { data: eligible } = await query;
         if (eligible?.length) {
-          const { data: counts } = await window.DB.supabaseClient()
-            .from('tickets').select('assigned_to').in('status', ['new','in_progress','in_review','awaiting_approval']);
-          const cMap = {};
-          (counts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to] = (cMap[tc.assigned_to]||0)+1; });
-          eligible.sort((a,b) => (cMap[a.id]||0)-(cMap[b.id]||0));
+          eligible.sort((a,b) => (cMap[a.id]||0) - (cMap[b.id]||0));
           assignTo = eligible[0].id;
+          cMap[assignTo] = (cMap[assignTo]||0) + 1;
         }
-      } catch(e) {}
+      } catch(e) { console.error('Bulk auto-assign:', e); }
     }
-    if (!assignTo) continue;
-    await window.DB.supabaseClient().from('tickets').update({ assigned_to: assignTo }).eq('id', t.id);
-    await window.DB.logTicketEvent(t.id, 'assigned', actor, `${actor} bulk-reassigned ticket from previous owner`, {});
-    count++;
+
+    if (!assignTo) { console.warn('Could not find assignee for ticket', t.id); continue; }
+
+    const { data, error } = await window.DB.supabaseClient()
+      .from('tickets').update({ assigned_to: assignTo }).eq('id', t.id).select();
+    if (!error) {
+      await window.DB.logTicketEvent(t.id, 'assigned', actor,
+        `${actor} bulk-reassigned ticket to new team member`, {});
+      count++;
+    } else {
+      console.error('Bulk reassign update failed:', error);
+    }
   }
 
   document.getElementById('bulk-reassign-modal').classList.remove('open');
-  showToast(count + ' ticket' + (count>1?'s':'')+' reassigned', 'success');
-  await window.renderLiveTickets();
-  if (window.refreshTicketCount) await window.refreshTicketCount();
+  if (count > 0) {
+    showToast(count + ' ticket' + (count>1?'s':'') + ' successfully reassigned', 'success');
+    await window.renderLiveTickets();
+    if (window.refreshTicketCount) await window.refreshTicketCount();
+  } else {
+    showToast('No tickets reassigned — check that team members have matching skills', 'warn');
+  }
 }
 
 // ATTACHMENT UPLOAD // holds {name, url, size} for current ticket draft
@@ -4254,12 +4307,15 @@ async function renderLiveWorkload() {
     const pct = Math.round((active / max) * 100);
     const barColor = pct >= 100 ? '#e85c4a' : pct >= 80 ? '#d47b1a' : 'var(--rise-light)';
     const ini = ((m.fname||'')[0] + (m.lname||'?')[0]).toUpperCase();
+    const dbId = m._dbId || m.id;
     return `
-      <div class="workload-card">
+      <div class="workload-card" style="cursor:pointer;transition:box-shadow 0.15s"
+           onclick="openStaffDashboard('${dbId}','${m.fname}','${(m.lname||'')}','${(m.role||'')}','${(m.color||'#013e51')}')"
+           onmouseenter="this.style.boxShadow='0 4px 16px rgba(1,62,81,0.15)'" onmouseleave="this.style.boxShadow=''">
         <div class="workload-header">
           <div style="width:28px;height:28px;border-radius:50%;background:${m.color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${ini}</div>
           <div>
-            <div class="workload-name">${m.fname} ${m.lname || ''}.</div>
+            <div class="workload-name" style="text-decoration:underline;text-decoration-color:var(--rise-light)">${m.fname} ${m.lname || ''}.</div>
             <div class="workload-role">${skillLabel(m)}</div>
           </div>
         </div>
@@ -5169,31 +5225,32 @@ async function clearAllRatings() {
 }
 // =============================================
 
-function openRejectionModal(ticketId, assigneeName, ticketTitle, assigneeEmail, submitterName) {
+function openRejectionModal(ticketId, assigneeName, ticketTitle, assigneeEmail, submitterName, ticketDbId, submitterEmail) {
   const modal = document.getElementById('rejection-modal');
+  const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
   document.getElementById('rejection-ticket-id').textContent = ticketId;
   document.getElementById('rejection-assignee').textContent = assigneeName;
-  document.getElementById('rejection-assignee-short').textContent = assigneeName;
+  document.getElementById('rejection-assignee-short') && (document.getElementById('rejection-assignee-short').textContent = assigneeName);
   document.getElementById('rejection-title').textContent = ticketTitle;
-  document.getElementById('rejection-submitter').textContent = submitterName;
-  document.getElementById('rejection-modal-meta').textContent = ticketId + ' · ' + assigneeName + ' will be notified';
+  document.getElementById('rejection-submitter') && (document.getElementById('rejection-submitter').textContent = submitterName||'Submitter');
+  document.getElementById('rejection-modal-meta').textContent = ticketId + ' · ' + assigneeName + ' and all stakeholders will be notified';
   document.getElementById('rejection-reason').value = '';
-  document.getElementById('rejection-email-body').value =
-    'Hi ' + assigneeName + ',\n\nA change request has been submitted for the following ticket:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\n\nReason: [Your reason will appear here once you fill in the field above]\n\nPlease review the notes, make the necessary revisions, and resubmit for approval.\n\nThank you,\nRISE Marketing Approvals';
 
-  // Auto-update email body when reason changes
-  const reasonField = document.getElementById('rejection-reason');
-  const emailField = document.getElementById('rejection-email-body');
-  reasonField.oninput = function() {
-    emailField.value = 'Hi ' + assigneeName + ',\n\nA change request has been submitted for the following ticket:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\n\nReason for changes:\n' + (this.value || '[No reason provided]') + '\n\nPlease review, make the necessary revisions, and resubmit for approval.\n\nThank you,\nRISE Marketing Approvals';
-  };
+  const emailBody = document.getElementById('rejection-email-body');
+  if (emailBody) {
+    emailBody.value = 'Hi ' + assigneeName + ',\n\nChanges are needed on ticket ' + ticketId + ' — ' + ticketTitle + '\n\nView ticket: ' + appUrl + '\n\nReason: [Fill in above]\n\nPlease revise and resubmit.\n\nThank you,\nRISE Marketing Team';
+    document.getElementById('rejection-reason').oninput = function() {
+      emailBody.value = 'Hi ' + assigneeName + ',\n\nChanges are needed on the following marketing request:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\nView & update: ' + appUrl + '\n\nReason:\n' + (this.value || '[No reason provided]') + '\n\nThe ticket is now "Awaiting Submitter Review" — please revise and resubmit for approval.\n\nThank you,\nRISE Marketing Team';
+    };
+  }
 
-  // Store context for submit
-  modal.dataset.ticketId = ticketId;
+  modal.dataset.ticketId     = ticketId;
+  modal.dataset.ticketDbId   = ticketDbId || '';
   modal.dataset.assigneeName = assigneeName;
-  modal.dataset.assigneeEmail = assigneeEmail;
-  modal.dataset.submitterName = submitterName;
-  modal.dataset.ticketTitle = ticketTitle;
+  modal.dataset.assigneeEmail= assigneeEmail || '';
+  modal.dataset.submitterName= submitterName || '';
+  modal.dataset.submitterEmail = submitterEmail || '';
+  modal.dataset.ticketTitle  = ticketTitle;
   modal.classList.add('open');
 }
 
@@ -5201,46 +5258,61 @@ function closeRejectionModal() {
   document.getElementById('rejection-modal').classList.remove('open');
 }
 
-function sendRejection() {
+async function sendRejection() {
   const modal = document.getElementById('rejection-modal');
-  const reason = document.getElementById('rejection-reason').value.trim();
-  const category = document.getElementById('rejection-category').value;
-  if (!reason) {
-    showToast('Please enter a reason before sending', 'warn');
-    document.getElementById('rejection-reason').focus();
-    return;
-  }
+  const reason       = document.getElementById('rejection-reason').value.trim();
+  const category     = document.getElementById('rejection-category').value;
+  if (!reason) { showToast('Please enter a reason before sending', 'warn'); document.getElementById('rejection-reason').focus(); return; }
 
-  const ticketId = modal.dataset.ticketId;
+  const ticketId     = modal.dataset.ticketId;
+  const ticketDbId   = modal.dataset.ticketDbId;
   const assigneeName = modal.dataset.assigneeName;
-  const submitterName = modal.dataset.submitterName;
-  const ticketTitle = modal.dataset.ticketTitle;
+  const assigneeEmail= modal.dataset.assigneeEmail || '';
+  const submitterName= modal.dataset.submitterName;
+  const submitterEmail = modal.dataset.submitterEmail || '';
+  const ticketTitle  = modal.dataset.ticketTitle;
+  const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
+
+  // Update ticket to awaiting_submitter in Supabase
+  if (ticketDbId && window.DB) {
+    try {
+      await window.DB.supabaseClient().from('tickets').update({ status: 'awaiting_submitter' }).eq('id', ticketDbId);
+      const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+      const actor = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Approver';
+
+      // Get property GM and Regional emails
+      let ticket = null;
+      try {
+        const tickets = await window.DB.loadTickets();
+        ticket = tickets.find(t => t.id === ticketDbId);
+      } catch(e) {}
+      const property = ticket ? propertiesData.find(p => p.name === ticket.property_name) : null;
+
+      // Collect all recipients: submitter + assignee + GM + Regional + VP + all matching approvers
+      const recipients = [
+        submitterEmail,
+        assigneeEmail,
+        property?.gmEmail,
+        property?.regionalEmail,
+        ...approversData.filter(a => a.status === 'active').map(a => a.email)
+      ].filter(Boolean).filter((e,i,arr) => arr.indexOf(e) === i); // dedupe
+
+      await window.DB.logTicketEvent(ticketDbId, 'rejected', actor,
+        `✕ ${actor} requested changes — ${category}: "${reason}" — Status: Awaiting Submitter Review`, {});
+
+      // Build mailto with all recipients and ticket hyperlink
+      const subject = encodeURIComponent(`Changes Requested: ${ticketId} — ${ticketTitle}`);
+      const bodyText = `Hi ${assigneeName},\n\nChanges have been requested on the following marketing ticket before it can be approved.\n\nTicket: ${ticketId} — ${ticketTitle}\nView & update: ${appUrl}\n\nReason (${category}):\n${reason}\n\nThe ticket has been moved to "Awaiting Submitter Review" — the marketing team's SLA clock is paused until revisions are submitted.\n\nPlease update the ticket and resubmit for approval.\n\nThank you,\nRISE Marketing Team`;
+      const mailto = `mailto:${recipients.join(';')}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+      window.open(mailto, '_blank');
+
+    } catch(e) { console.error('sendRejection:', e); }
+  }
 
   closeRejectionModal();
-  showToast('Change request sent to ' + assigneeName + '. ' + submitterName + ' also notified.', 'success');
-
-  // Log to timeline if open
-  const timeline = document.getElementById('ticket-timeline');
-  if (timeline) {
-    const now = new Date();
-    const timeStr = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ', ' +
-      now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    const sender = document.getElementById('userName').textContent.split('—')[0].trim();
-    const entry = document.createElement('div');
-    entry.className = 'tl-item';
-    entry.innerHTML = `
-      <div class="tl-dot" style="background:#e85c4a"></div>
-      <div>
-        <div class="tl-text">✕ <strong>${sender}</strong> requested changes — <em>${category}</em><br>
-          <span style="color:#5a7a86;font-size:12px">"${reason}"</span><br>
-          <span style="color:#7a9aaa;font-size:11px">Email sent to ${assigneeName} and ${submitterName}</span>
-        </div>
-        <div class="tl-time">${timeStr} ⏸ Timer paused — awaiting revision</div>
-      </div>
-    `;
-    timeline.appendChild(entry);
-    timeline.lastElementChild.scrollIntoView({behavior:'smooth', block:'nearest'});
-  }
+  showToast('Change request sent — email client opened with all recipients. Ticket moved to Awaiting Submitter Review.', 'success');
+  if (window.renderLiveApprovals) window.renderLiveApprovals();
+  if (window.refreshTicketCount) window.refreshTicketCount();
 }
 
 // =============================================
@@ -5444,7 +5516,18 @@ function showSettingsTab(tab) {
   if (tab === 'team') renderTeamCards();
   if (tab === 'skills') renderSkills();
   if (tab === 'approvals') renderApprovalRules();
-  if (tab === 'approvers') renderApprovers();
+  if (tab === 'approvers') {
+    // Always reload from Supabase before rendering approvers
+    if (window.DB) {
+      window.DB.supabaseClient().from('approvers').select('*').order('created_at')
+        .then(({ data }) => {
+          if (data) approversData = data.map(mapApprover);
+          renderApprovers();
+        }).catch(() => renderApprovers());
+    } else {
+      renderApprovers();
+    }
+  }
   if (tab === 'properties') renderProperties();
   if (tab === 'sla') renderSLA();
   if (tab === 'bonus-settings') { renderBonusWeightsSettings(); renderBonusTargetSettings(); }
@@ -6039,16 +6122,31 @@ function syncRoutingMap() {
 }
 
 // NUDGE APPROVER
-function sendNudge(ticketId, approverName, approverRole, ticketTitle) {
+function sendNudge(ticketId, approverName, approverRole, ticketTitle, ticketDbId) {
   const nudgeModal = document.getElementById('nudge-modal');
+
+  // Find real approver emails from approversData
+  const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
+  const matchedApprovers = approversData.filter(a =>
+    a.status === 'active' && (approverRole === 'all' || a.role === approverRole)
+  );
+  const approverEmail = matchedApprovers.length > 0
+    ? matchedApprovers.map(a => a.email).join(';')
+    : '';
+  const approverDisplayName = matchedApprovers.length > 0
+    ? matchedApprovers[0].fname + ' ' + (matchedApprovers[0].lname||'')
+    : approverName;
+
   document.getElementById('nudge-ticket-id').textContent = ticketId;
-  document.getElementById('nudge-approver').textContent = approverName + ' (' + approverRole + ')';
+  document.getElementById('nudge-approver').textContent = approverDisplayName + ' (' + approverRole + ')';
   document.getElementById('nudge-ticket-title').textContent = ticketTitle;
   document.getElementById('nudge-message').value =
-    'Hi ' + approverName.split(' ')[0] + ',\n\nThis is a friendly reminder that your approval is needed on the following marketing request:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\n\nYour sign-off is required before this item can move forward. Please review and approve at your earliest convenience.\n\nThank you,\nRISE Marketing Team';
-  // Store context for logging
+    'Hi ' + approverDisplayName.split(' ')[0] + ',\n\nThis is a friendly reminder that your approval is needed on the following marketing request:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\nApproval link: ' + appUrl + '\n\nYour sign-off is required before this item can move forward. Please review and approve at your earliest convenience.\n\nThank you,\nRISE Marketing Team';
+
   nudgeModal.dataset.ticketId = ticketId;
-  nudgeModal.dataset.approver = approverName;
+  nudgeModal.dataset.ticketDbId = ticketDbId || '';
+  nudgeModal.dataset.approver = approverDisplayName;
+  nudgeModal.dataset.approverEmail = approverEmail;
   nudgeModal.dataset.role = approverRole;
   nudgeModal.classList.add('open');
 }
@@ -6056,78 +6154,78 @@ function sendNudge(ticketId, approverName, approverRole, ticketTitle) {
 function sendNudgeEmail() {
   const modal = document.getElementById('nudge-modal');
   const ticketId = modal.dataset.ticketId;
+  const ticketDbId = modal.dataset.ticketDbId;
   const approver = modal.dataset.approver;
+  const approverEmail = modal.dataset.approverEmail;
   const role = modal.dataset.role;
-  const now = new Date();
-  const timeStr = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ', ' +
-    now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const message = document.getElementById('nudge-message').value;
+  const subject = encodeURIComponent('Action Required: Approval Needed — Ticket ' + ticketId);
+  const body = encodeURIComponent(message);
+
+  // Open real email client
+  const mailtoLink = approverEmail
+    ? `mailto:${approverEmail}?subject=${subject}&body=${body}`
+    : `mailto:?subject=${subject}&body=${body}`;
+  window.open(mailtoLink, '_blank');
 
   modal.classList.remove('open');
-  showToast('Nudge email sent to ' + approver + ' for ' + ticketId, 'success');
+  showToast('Email client opened — send the nudge to ' + (approver || 'approver'), 'success');
 
-  // Log to timeline if the ticket modal is open for this ticket
-  const timeline = document.getElementById('ticket-timeline');
-  if (timeline) {
-    const entry = document.createElement('div');
-    entry.className = 'tl-item';
-    entry.style.cssText = 'animation: fadeIn 0.3s ease';
-    entry.innerHTML = `
-      <div class="tl-dot" style="background:#d47b1a"></div>
-      <div>
-        <div class="tl-text">👋 Nudge email sent to <strong>${approver}</strong> (${role}) — awaiting approval response</div>
-        <div class="tl-time">${timeStr} · Sent by ${document.getElementById('userName').textContent.split('—')[0].trim()}</div>
-      </div>
-    `;
-    timeline.appendChild(entry);
-    timeline.lastElementChild.scrollIntoView({behavior:'smooth', block:'nearest'});
+  // Log to Supabase timeline
+  if (ticketDbId && window.DB) {
+    const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+    const actor = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Team';
+    window.DB.logTicketEvent(ticketDbId, 'nudge', actor,
+      `👋 Nudge sent to ${approver} (${role}) — email opened in client`, {});
   }
-
-  // Also log to the per-ticket nudge store
-  if (!window.nudgeLog) window.nudgeLog = {};
-  if (!window.nudgeLog[ticketId]) window.nudgeLog[ticketId] = [];
-  window.nudgeLog[ticketId].push({approver, role, time: timeStr});
 }
 
-// APPROVE ITEM — captures counter amount if present
-function approveItem(btn, ticketId) {
-  // Read counter amount if field exists
-  const counterField = document.getElementById('counter-amount-' + ticketId.replace('MCC-',''));
-  const counterNote = document.getElementById('counter-note-' + ticketId.replace('MCC-',''));
-  const approvedAmt = counterField ? parseFloat(counterField.value) : null;
-  const note = counterNote ? counterNote.value.trim() : '';
+// APPROVE ITEM — saves to Supabase, sends real email via mailto
+async function approveItem(btn, ticketId, ticketDbId) {
+  const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
 
-  btn.disabled = true;
-  btn.textContent = '✓ Approved';
-  btn.style.background = '#1a6b3e';
+  // Find the ticket to get full context
+  let ticket = null;
+  try {
+    const tickets = await window.DB.loadTickets();
+    ticket = tickets.find(t => t.id === ticketDbId || t.ticket_number === ticketId);
+  } catch(e) {}
 
-  const count = parseInt(document.getElementById('approvalCount').textContent) - 1;
-  document.getElementById('approvalCount').textContent = Math.max(0, count);
+  const counterField = document.getElementById('counter-amount-' + (ticketDbId||ticketId));
+  const counterNote  = document.getElementById('counter-note-' + (ticketDbId||ticketId));
+  const approvedAmt  = counterField ? parseFloat(counterField.value) : (ticket?.estimated_cost || null);
+  const note         = counterNote ? counterNote.value.trim() : '';
 
-  let msg = 'Ticket ' + ticketId + ' approved';
-  if (approvedAmt !== null && !isNaN(approvedAmt)) {
-    msg += ' — $' + approvedAmt.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + ' authorized';
+  if (btn) { btn.disabled = true; btn.textContent = '✓ Approved'; btn.style.background = '#1a6b3e'; }
+
+  // Update ticket status to in_progress (or complete if final gate)
+  if (ticketDbId && window.DB) {
+    try {
+      await window.DB.supabaseClient().from('tickets').update({
+        status: 'in_progress',
+        approved_cost: approvedAmt || null
+      }).eq('id', ticketDbId);
+
+      const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+      const actor = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Approver';
+      await window.DB.logTicketEvent(ticketDbId, 'approved', actor,
+        `✓ ${actor} approved${approvedAmt ? ' — $' + parseFloat(approvedAmt).toLocaleString() + ' authorized' : ''}${note ? ' · Note: ' + note : ''}`, {});
+    } catch(e) { console.error('approveItem save:', e); }
   }
-  if (note) msg += ' · Note recorded';
-  msg += '. Team notified via Outlook.';
-  showToast(msg, 'success');
 
-  // Log counter-approval to timeline if open
-  const timeline = document.getElementById('ticket-timeline');
-  if (timeline && (approvedAmt !== null || note)) {
-    const now = new Date();
-    const timeStr = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ', ' +
-      now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    const entry = document.createElement('div');
-    entry.className = 'tl-item';
-    entry.innerHTML = `
-      <div class="tl-dot" style="background:#2a9d6e"></div>
-      <div>
-        <div class="tl-text">✓ <strong>${document.getElementById('userName').textContent.split('—')[0].trim()}</strong> approved${approvedAmt ? ' — <strong>$' + approvedAmt.toLocaleString() + ' authorized</strong>' : ''}${note ? ' · "' + note + '"' : ''}</div>
-        <div class="tl-time">${timeStr}</div>
-      </div>
-    `;
-    timeline.appendChild(entry);
+  // Build notification email to submitter + assigned team member
+  if (ticket) {
+    const property = propertiesData.find(p => p.name === ticket.property_name);
+    const recipients = [ticket.submitted_by_email, ticket.team_members?.email].filter(Boolean).join(';');
+    const subject = encodeURIComponent(`✓ Approved: ${ticketId} — ${ticket.title}`);
+    const bodyText = `Hi,\n\nGreat news — the following marketing request has been approved and is now moving forward.\n\nTicket: ${ticketId} — ${ticket.title}\nProperty: ${ticket.property_name || '—'}\nApproved Amount: ${approvedAmt ? '$' + parseFloat(approvedAmt).toLocaleString() : 'N/A'}\n${note ? 'Note: ' + note + '\n' : ''}\nView ticket: ${appUrl}\n\nThank you,\nRISE Marketing Team`;
+    const mailto = `mailto:${recipients}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+    window.open(mailto, '_blank');
   }
+
+  await window.refreshTicketCount();
+  if (window.renderLiveApprovals) window.renderLiveApprovals();
+  showToast('Ticket ' + ticketId + ' approved — notification email opened', 'success');
 }
 
 // Unified showTab — handles all tab-switch side effects in one place
