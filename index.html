@@ -575,8 +575,8 @@
     background: white;
     border-radius: 14px;
     width: 100%;
-    max-width: 680px;
-    max-height: 85vh;
+    max-width: 900px;
+    max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(1,62,81,0.25);
   }
@@ -1534,79 +1534,6 @@
     </div>
   </div>
 
-    <div class="stat-grid" style="grid-template-columns:repeat(5,1fr)">
-      <div class="stat-card">
-        <div class="stat-label">Tickets Closed</div>
-        <div class="stat-value">23</div>
-        <div class="stat-sub">Last 30 days</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Avg Team Time</div>
-        <div class="stat-value">2.8d</div>
-        <div class="stat-sub stat-up">↓ vs 3.6d prior</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Avg Approval Wait</div>
-        <div class="stat-value stat-warn">4.1d</div>
-        <div class="stat-sub">Excluded from SLA</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">On-Time Delivery</div>
-        <div class="stat-value stat-up">94%</div>
-        <div class="stat-sub">Marketing-controlled</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Revisions/Ticket</div>
-        <div class="stat-value">1.3</div>
-        <div class="stat-sub">Avg rounds of feedback</div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <!-- INDIVIDUAL METRICS -->
-      <div class="card">
-        <div class="card-title">Individual Performance</div>
-        <div style="margin-bottom:20px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div class="assignee av-renee">RE</div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:13px;font-weight:600;color:var(--rise-dark)">Renee</span>
-                <span style="font-size:12px;color:#7a9aaa">9 closed · 2.4d avg</span>
-              </div>
-              <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:90%"></div></div>
-            </div>
-            <span class="badge badge-complete">Top</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div class="assignee av-york">YK</div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:13px;font-weight:600;color:var(--rise-dark)">York</span>
-                <span style="font-size:12px;color:#7a9aaa">7 closed · 3.1d avg</span>
-              </div>
-              <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:74%"></div></div>
-            </div>
-            <span class="badge badge-inprogress">Good</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div class="assignee av-maya">MA</div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:13px;font-weight:600;color:var(--rise-dark)">Maya</span>
-                <span style="font-size:12px;color:#7a9aaa">4 closed · 2.9d avg</span>
-              </div>
-              <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:80%"></div></div>
-            </div>
-            <span class="badge badge-complete">Good</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="assignee av-jordan">JO</div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:13px;font-weight:600;color:var(--rise-dark)">Jordan</span>
-                <span style="font-size:12px;color:#7a9aaa">3 closed · 3.8d avg</span>
-              </div>
   <!-- ======== REPORTING ======== -->
   <div class="page" id="page-reporting">
     <div class="section-header">
@@ -1766,8 +1693,11 @@
 
       <!-- SATISFACTION RATINGS LOG -->
       <div class="card">
-        <div class="card-title">Service Satisfaction Ratings <span style="font-size:10px;font-weight:400;color:#7a9aaa;text-transform:none;letter-spacing:0">Collected on ticket close</span></div>
-        <div id="ratings-empty" style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">No ratings received yet this period. Ratings are requested automatically when tickets close.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">Service Satisfaction Ratings <span style="font-size:10px;font-weight:400;color:#7a9aaa;text-transform:none;letter-spacing:0">Collected on ticket close</span></div>
+          <button class="btn btn-secondary btn-sm" onclick="openSurveyDetailModal()" style="font-size:11px">View All Responses →</button>
+        </div>
+        <div id="ratings-empty" style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">No ratings received yet. Ratings are requested automatically when tickets close.</div>
         <table class="ticket-table" id="ratings-table" style="display:none">
           <thead><tr><th>Ticket</th><th>Property</th><th>Assigned To</th><th>Quality</th><th>Timeliness</th><th>Comment</th><th>Date</th><th id="rating-delete-col" style="display:none"></th></tr></thead>
           <tbody id="ratings-tbody"></tbody>
@@ -2213,14 +2143,16 @@
         </div>
         <div style="display:flex;align-items:flex-end;gap:6px">
           <button class="btn btn-primary btn-sm" onclick="saveTicketChanges()">Save Changes</button>
-          <button class="btn btn-secondary btn-sm" onclick="openBulkReassignModal()">Bulk Reassign</button>
         </div>
       </div>
 
-      <!-- REQUEST REASSIGNMENT (all users) -->
-      <div style="margin-bottom:12px">
+      <!-- REQUEST REASSIGNMENT (ALL users including director/VP) -->
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="openReassignRequestModal()" style="color:#d47b1a;border-color:#fad897">
           🔀 Request Reassignment
+        </button>
+        <button id="bulk-reassign-btn" class="btn btn-secondary btn-sm" onclick="openBulkReassignModal()" style="display:none">
+          📋 Bulk Reassign
         </button>
       </div>
 
@@ -2252,9 +2184,9 @@
       </div>
 
       <!-- BRIEF — rendered dynamically -->
-      <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:#2a4550" id="modal-brief-section" style="display:none">
-        <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7a9aaa;display:block;margin-bottom:6px">Creative Brief</strong>
-        <span id="modal-brief-text">—</span>
+      <div style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px" id="modal-brief-section" style="display:none">
+        <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7a9aaa;display:block;margin-bottom:10px">✨ Creative Brief</strong>
+        <div id="modal-brief-text" style="font-size:13px;line-height:1.7;color:#2a4550"></div>
       </div>
 
       <!-- TIMELINE -->
@@ -3278,12 +3210,41 @@ function openTicket(id, dbId) {
     if (budgetEl) budgetEl.textContent = t.budget_line || '—';
     if (vendorEl) vendorEl.textContent = t.vendor || '—';
 
-    // Brief
+    // Brief — render as formatted sections
     const briefSection = document.getElementById('modal-brief-section');
     const briefText = document.getElementById('modal-brief-text');
     if (briefSection && briefText) {
-      if (t.ai_brief) { briefSection.style.display='block'; briefText.textContent=t.ai_brief; }
-      else briefSection.style.display='none';
+      if (t.ai_brief) {
+        briefSection.style.display = 'block';
+        // Parse sections separated by labels like "AUDIENCE:", "TONE & VIBE:", etc.
+        const sections = t.ai_brief.split(/\n(?=[A-Z][A-Z &]+:)/);
+        briefText.innerHTML = sections.map(section => {
+          const match = section.match(/^([A-Z][A-Z\s&\/]+):\s*([\s\S]*)/);
+          if (match) {
+            const label = match[1].trim();
+            const content = match[2].trim();
+            // Handle visual style options as sub-sections
+            if (label === 'VISUAL STYLE OPTIONS') {
+              const opts = content.split(/\n(?=Option [A-C])/);
+              return `<div style="margin-bottom:10px">
+                <div style="font-size:10px;font-weight:700;color:#013e51;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #d0e8f0">${label}</div>
+                <div style="display:flex;flex-direction:column;gap:6px">${opts.map(opt => {
+                  const om = opt.match(/^(Option [A-C][^:]*?):\s*([\s\S]*)/);
+                  if (om) return `<div style="background:white;border:1px solid #d0e8f0;border-radius:6px;padding:8px 10px"><div style="font-weight:600;color:#013e51;font-size:12px;margin-bottom:2px">${om[1].trim()}</div><div style="font-size:12px;color:#4a7080;line-height:1.5">${om[2].trim()}</div></div>`;
+                  return `<div style="font-size:12px;color:#4a7080">${opt.trim()}</div>`;
+                }).join('')}</div>
+              </div>`;
+            }
+            return `<div style="margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;color:#013e51;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${label}</div>
+              <div style="font-size:13px;color:#2a4550;line-height:1.6">${content.replace(/\n/g,'<br>')}</div>
+            </div>`;
+          }
+          return section.trim() ? `<div style="font-size:13px;color:#2a4550;line-height:1.6;margin-bottom:8px">${section.trim().replace(/\n/g,'<br>')}</div>` : '';
+        }).join('');
+      } else {
+        briefSection.style.display = 'none';
+      }
     }
   });
 
@@ -3816,7 +3777,10 @@ function populateModalControls(ticket) {
   if (ticket && ticket.status) statusSelect.value = ticket.status;
   const controls = document.getElementById('modal-controls');
   const role = getBonusRole();
-  if (controls) controls.style.display = ['vp','director','admin'].includes(role) ? 'flex' : 'none';
+  const isPriv = ['vp','director','admin'].includes(role);
+  if (controls) controls.style.display = isPriv ? 'flex' : 'none';
+  const bulkBtn = document.getElementById('bulk-reassign-btn');
+  if (bulkBtn) bulkBtn.style.display = isPriv ? 'inline-flex' : 'none';
 }
 
 async function saveTicketChanges() {
@@ -3836,11 +3800,28 @@ async function saveTicketChanges() {
     await window.DB.logTicketEvent(dbId, 'system', actorName,
       `${actorName} updated — status: ${status}${assignTo ? ' · assigned to: ' + assigneeName.split('·')[0].trim() : ''}`, {});
     showToast('Ticket updated', 'success');
+
+    // Immediately update modal header without re-open
+    const assigneeDisplayName = document.getElementById('modal-assign-select').selectedOptions[0]?.text?.split('·')[0]?.trim() || 'Unassigned';
+    const metaEl = document.getElementById('modal-ticket-meta');
+    if (metaEl) {
+      const parts = metaEl.textContent.split(' · ');
+      parts[parts.length - 1] = assignTo ? assigneeDisplayName : 'Unassigned';
+      metaEl.textContent = parts.join(' · ');
+    }
+
+    // Refresh timeline to show the new log entry
+    const events = await window.DB.loadTicketEvents(dbId);
+    const tl = document.getElementById('ticket-timeline');
+    if (tl && events.length) {
+      tl.innerHTML = events.map(e => {
+        const time = e.created_at ? new Date(e.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+        return `<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text">${e.body||''}</div><div class="tl-time">${time}</div></div></div>`;
+      }).join('');
+    }
+
     await window.renderLiveTickets();
     if (window.refreshTicketCount) await window.refreshTicketCount();
-    const tickets = await window.DB.loadTickets();
-    const t = tickets.find(x => x.id === dbId);
-    if (t) populateModalControls(t);
   } catch(e) {
     console.error('saveTicketChanges:', e);
     showToast('Update failed: ' + e.message, 'error');
@@ -3962,9 +3943,11 @@ async function renderStaffRankings(allTickets, closedTickets, ratings) {
 // STAFF MEMBER DASHBOARD
 // =============================================
 async function openStaffDashboard(dbId, fname, lname, role, color) {
-  // Show sub-page
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.getElementById('page-staff-dashboard').style.display = 'block';
+  // Hide all pages, show staff dashboard
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const dash = document.getElementById('page-staff-dashboard');
+  if (dash) { dash.classList.add('active'); dash.style.display = 'block'; }
 
   // Set header
   document.getElementById('staff-dash-name').textContent = fname + ' ' + (lname||'');
@@ -5102,7 +5085,88 @@ function initLeadSources() {
 // =============================================
 
 // =============================================
-// REJECTION / REQUEST CHANGES
+// SURVEY DETAIL MODAL
+// =============================================
+function openSurveyDetailModal() {
+  // Populate staff filter
+  const staffFilter = document.getElementById('survey-filter-staff');
+  const propFilter  = document.getElementById('survey-filter-property');
+  staffFilter.innerHTML = '<option value="">All Staff Members</option>';
+  teamData.filter(m => m.status === 'active').forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.fname; opt.textContent = m.fname + ' ' + (m.lname||'');
+    staffFilter.appendChild(opt);
+  });
+  propFilter.innerHTML = '<option value="">All Properties</option>';
+  propertiesData.filter(p => p.status === 'active').forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name; opt.textContent = p.name;
+    propFilter.appendChild(opt);
+  });
+  document.getElementById('survey-detail-modal').classList.add('open');
+  renderSurveyDetail();
+}
+
+function renderSurveyDetail() {
+  const staffFilter = document.getElementById('survey-filter-staff')?.value || '';
+  const propFilter  = document.getElementById('survey-filter-property')?.value || '';
+  const list = document.getElementById('survey-detail-list');
+  if (!list) return;
+
+  let filtered = [...satisfactionRatings];
+  if (staffFilter) filtered = filtered.filter(r => r.assigneeName === staffFilter);
+  if (propFilter)  filtered = filtered.filter(r => r.property === propFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:#7a9aaa;font-size:13px">No ratings match the current filters.</div>';
+    return;
+  }
+
+  const stars = n => '<span style="color:#d47b1a">' + '★'.repeat(n||0) + '</span><span style="color:#e8f2f6">' + '★'.repeat(5-(n||0)) + '</span>';
+  const role = getBonusRole();
+  const isPriv = ['vp','director','admin'].includes(role);
+
+  list.innerHTML = filtered.map((r,i) => `
+    <div style="padding:14px;border:1px solid var(--rise-pale);border-radius:var(--radius-sm);margin-bottom:10px;background:white">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:600;color:var(--rise-dark);font-size:13px">${r.ticketTitle || r.ticketId || '—'}</div>
+          <div style="font-size:11px;color:#7a9aaa;margin-top:2px">${r.property || '—'} · ${r.date || '—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:#7a9aaa;margin-bottom:2px">Quality</div>
+            <div style="font-size:16px">${stars(r.quality)}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:#7a9aaa;margin-bottom:2px">Timeliness</div>
+            <div style="font-size:16px">${stars(r.timeliness)}</div>
+          </div>
+          <div style="text-align:center;min-width:80px">
+            <div style="font-size:10px;color:#7a9aaa;margin-bottom:2px">Assigned To</div>
+            <div style="font-weight:600;color:var(--rise-dark);font-size:12px">${r.assigneeName || '—'}</div>
+          </div>
+          ${isPriv ? `<button class="btn btn-reject btn-sm" style="padding:3px 8px;font-size:11px" onclick="deleteRating('${r.id}');renderSurveyDetail();renderRatingsTable()">Delete</button>` : ''}
+        </div>
+      </div>
+      ${r.comment ? `<div style="margin-top:8px;padding:8px 10px;background:var(--rise-pale);border-radius:6px;font-size:12px;color:#2a4550;font-style:italic">"${r.comment}"</div>` : ''}
+    </div>`).join('');
+}
+
+async function clearAllRatings() {
+  const role = getBonusRole();
+  if (!['vp','director','admin'].includes(role)) { showToast('Director or VP access required', 'warn'); return; }
+  if (!confirm('Clear ALL satisfaction ratings? This cannot be undone.')) return;
+  for (const r of satisfactionRatings) {
+    if (r.id && window.DB) {
+      try { await window.DB.deleteRating(r.id); } catch(e) {}
+    }
+  }
+  satisfactionRatings = [];
+  renderRatingsTable();
+  renderSurveyDetail();
+  showToast('All ratings cleared', 'info');
+}
 // =============================================
 
 function openRejectionModal(ticketId, assigneeName, ticketTitle, assigneeEmail, submitterName) {
@@ -6068,7 +6132,7 @@ function approveItem(btn, ticketId) {
 
 // Unified showTab — handles all tab-switch side effects in one place
 function showTab(tabId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const page = document.getElementById('page-' + tabId);
   if (page) page.classList.add('active');
@@ -6396,28 +6460,73 @@ function calcBonusScore(perf) {
   return Math.round(score);
 }
 
-function renderBonusCards() {
+async function renderBonusCards() {
   const grid = document.getElementById('bonus-cards-grid');
   if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#7a9aaa">Loading...</div>';
+
+  // Load live ticket data
+  let allTickets = [];
+  try { allTickets = await window.DB.loadTickets(); } catch(e) {}
+  const closed = allTickets.filter(t => t.status === 'complete');
+  const totalSpend = leadSourcesData.reduce((s,l) => s + (l.monthlyCost||0), 0);
+
+  // Update bonus KPI strip with live data
+  const staffRatings = satisfactionRatings;
+  const avgSat = staffRatings.length > 0
+    ? (staffRatings.reduce((s,r) => s + ((r.quality+r.timeliness)/2), 0) / staffRatings.length).toFixed(1)
+    : '—';
+  const dueAndClosed = closed.filter(t => t.due_date);
+  const onTimePct = dueAndClosed.length > 0
+    ? Math.round(dueAndClosed.filter(t => t.closed_at <= t.due_date+'T23:59:59').length / dueAndClosed.length * 100) + '%'
+    : '—';
+
+  const avgScoreEl = document.getElementById('bonus-avg-score');
+  const avgSatEl   = document.getElementById('bonus-avg-sat');
+  const ontimeEl   = document.getElementById('bonus-ontime');
+  const savingsEl  = document.getElementById('bonus-savings');
+  if (avgScoreEl) avgScoreEl.textContent = staffRatings.length > 0 ? avgSat + '/5' : '—';
+  if (avgSatEl)   avgSatEl.textContent   = avgSat !== '—' ? avgSat + '★' : '—';
+  if (ontimeEl)   ontimeEl.textContent   = onTimePct;
+  if (savingsEl)  savingsEl.textContent  = totalSpend > 0 ? '$' + totalSpend.toLocaleString() : '$0';
+
   grid.innerHTML = '';
-  const staffMembers = teamData.filter(m => m.status==='active' && m.roleType !== 'vp');
+  const staffMembers = teamData.filter(m => m.status === 'active' && m.roleType !== 'vp');
+
   staffMembers.forEach(m => {
-    const perf = DEMO_PERF[m.id] || {tickets:0, ontime:0, sat:0, savings:0, revisions:0, ticketsTarget:10};
-    const score = calcBonusScore(perf);
-    const scoreColor = score >= 90 ? '#2a9d6e' : score >= 75 ? '#d47b1a' : '#e85c4a';
-    const memberRatings = satisfactionRatings.filter(r => r.assigneeId === m.id);
-    const avgQuality = memberRatings.length > 0 ? (memberRatings.reduce((s,r)=>s+(r.quality||0),0)/memberRatings.length).toFixed(1) : perf.sat.toFixed(1);
-    const avgTime = memberRatings.length > 0 ? (memberRatings.reduce((s,r)=>s+(r.timeliness||0),0)/memberRatings.length).toFixed(1) : perf.sat.toFixed(1);
+    const dbId = m._dbId || m.id;
+    const myTickets = allTickets.filter(t => t.assigned_to === dbId);
+    const myClosed  = myTickets.filter(t => t.status === 'complete');
+    const myOpen    = myTickets.filter(t => !['complete','cancelled'].includes(t.status));
+    const myRatings = satisfactionRatings.filter(r => r.assigneeName === m.fname || r.assigneeId === dbId);
+
+    // Live perf metrics
+    const ticketCount   = myClosed.length;
+    const ticketTarget  = m.maxTickets || 5;
+    const dueAndClosedM = myClosed.filter(t => t.due_date);
+    const onTimeM       = dueAndClosedM.filter(t => t.closed_at <= t.due_date+'T23:59:59').length;
+    const onTimePctM    = dueAndClosedM.length > 0 ? Math.round((onTimeM / dueAndClosedM.length) * 100) : 0;
+    const avgQuality    = myRatings.length > 0 ? (myRatings.reduce((s,r) => s+(r.quality||0), 0) / myRatings.length).toFixed(1) : '—';
+    const avgTimeliness = myRatings.length > 0 ? (myRatings.reduce((s,r) => s+(r.timeliness||0), 0) / myRatings.length).toFixed(1) : '—';
+
+    // Composite score
+    const closureScore  = Math.min(100, ticketTarget > 0 ? Math.round((ticketCount / ticketTarget) * 100) : 0);
+    const ratingScore   = myRatings.length > 0 ? Math.round(((parseFloat(avgQuality)||0) / 5) * 100) : 50;
+    const loadScore     = myOpen.length <= (m.maxTickets||5) ? 100 : Math.max(0, 100 - ((myOpen.length - (m.maxTickets||5)) * 20));
+    const score         = Math.round((closureScore * 0.40) + (ratingScore * 0.40) + (loadScore * 0.20));
+    const scoreColor    = score >= 80 ? '#2a9d6e' : score >= 60 ? '#d47b1a' : '#e85c4a';
 
     const card = document.createElement('div');
     card.className = 'card';
     card.style.cssText = 'border-top:3px solid ' + scoreColor;
     card.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-        <div style="width:44px;height:44px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:white;flex-shrink:0">${initials(m)}</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:${m.color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:white;flex-shrink:0;cursor:pointer"
+             onclick="openStaffDashboard('${dbId}','${m.fname}','${(m.lname||'')}','${(m.role||'')}','${(m.color||'#013e51')}')">${initials(m)}</div>
         <div style="flex:1">
-          <div style="font-weight:600;font-size:15px;color:var(--rise-dark)">${m.fname} ${m.lname}.</div>
-          <div style="font-size:11px;color:#7a9aaa">${m.role}</div>
+          <div style="font-weight:600;font-size:15px;color:var(--rise-dark);cursor:pointer;text-decoration:underline;text-decoration-color:var(--rise-light)"
+               onclick="openStaffDashboard('${dbId}','${m.fname}','${(m.lname||'')}','${(m.role||'')}','${(m.color||'#013e51')}')">${m.fname} ${m.lname||''}.</div>
+          <div style="font-size:11px;color:#7a9aaa">${m.role||''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:28px;font-weight:700;color:${scoreColor};line-height:1">${score}%</div>
@@ -6435,9 +6544,9 @@ function renderBonusCards() {
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
         ${[
-          {label:'Tickets', val:perf.tickets+'/'+perf.ticketsTarget, sub:'closed'},
-          {label:'On-Time', val:perf.ontime+'%', sub:'delivery rate'},
-          {label:'Savings', val: perf.savings > 0 ? '$'+perf.savings.toLocaleString() : '—', sub:'identified'},
+          {label:'Tickets', val:ticketCount+'/'+ticketTarget, sub:'closed vs target'},
+          {label:'On-Time', val:dueAndClosedM.length>0?onTimePctM+'%':'—', sub:'delivery rate'},
+          {label:'Open Now', val:myOpen.length, sub:'active tickets'},
         ].map(s=>`
           <div style="text-align:center;background:var(--rise-pale);border-radius:var(--radius-sm);padding:8px 4px">
             <div style="font-size:15px;font-weight:700;color:var(--rise-dark)">${s.val}</div>
@@ -6446,28 +6555,29 @@ function renderBonusCards() {
           </div>`).join('')}
       </div>
 
-      <div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:10px;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">Satisfaction Ratings</div>
+      <div style="background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;cursor:pointer"
+           onclick="openSurveyDetailModal()">
+        <div style="font-size:11px;font-weight:600;color:#7a4400;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">
+          Satisfaction Ratings <span style="font-weight:400;color:#aaa;font-size:10px">(${myRatings.length} response${myRatings.length!==1?'s':''} · click to view)</span>
+        </div>
         <div style="display:flex;gap:16px">
           <div style="text-align:center">
-            <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">${avgQuality}★</div>
+            <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">${avgQuality !== '—' ? avgQuality+'★' : '—'}</div>
             <div style="font-size:10px;color:#7a9aaa">Quality</div>
           </div>
           <div style="text-align:center">
-            <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">${avgTime}★</div>
+            <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">${avgTimeliness !== '—' ? avgTimeliness+'★' : '—'}</div>
             <div style="font-size:10px;color:#7a9aaa">Timeliness</div>
           </div>
-          <div style="text-align:center">
-            <div style="font-size:18px;font-weight:700;color:var(--rise-dark)">${memberRatings.length}</div>
-            <div style="font-size:10px;color:#7a9aaa">Ratings</div>
-          </div>
+          ${myRatings.length > 0 ? `<div style="flex:1;font-style:italic;font-size:11px;color:#7a4400;line-height:1.4;max-height:40px;overflow:hidden">"${myRatings[0].comment||''}"</div>` : '<div style="flex:1;font-size:11px;color:#aac0ca">No surveys received yet</div>'}
         </div>
-      </div>
-
-      <div style="font-size:11px;color:#7a9aaa">Revisions per ticket: <strong style="color:${perf.revisions>1.5?'#e85c4a':'var(--rise-dark)'}">${perf.revisions}</strong> avg  ·  ${perf.revisions <= 1.5 ? '✓ Within target' : '⚠ Above target'}</div>
-    `;
+      </div>`;
     grid.appendChild(card);
   });
+
+  if (staffMembers.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:#7a9aaa">No active staff members. Add team members in Settings → Team Members.</div>';
+  }
 }
 
 function renderBonusWeightsSettings() {
@@ -6714,6 +6824,7 @@ Object.assign(window, {
 
   // Bonus
   renderBonusCards, saveBonusWeights, saveBonusTargets, updateWeightsTotal, showBonusTabIfAuthorized,
+  openSurveyDetailModal, renderSurveyDetail, clearAllRatings,
 
   // Survey
   submitSurvey, closeSurveyModal, openSurveyForTicket,
@@ -7001,6 +7112,29 @@ Object.assign(window, {
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn btn-secondary" onclick="document.getElementById('bulk-reassign-modal').classList.remove('open')">Cancel</button>
         <button class="btn btn-primary" onclick="executeBulkReassign()">Reassign All</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- SURVEY DETAIL MODAL -->
+<div class="modal-overlay" id="survey-detail-modal">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header" style="background:#013e51">
+      <div><div class="modal-title">Survey Responses — All Satisfaction Ratings</div><div class="modal-meta">Who rated which staff member and why</div></div>
+      <button class="modal-close" onclick="document.getElementById('survey-detail-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="survey-filter-bar">
+        <select id="survey-filter-staff" style="font-size:12px;padding:6px 10px" onchange="renderSurveyDetail()">
+          <option value="">All Staff Members</option>
+        </select>
+        <select id="survey-filter-property" style="font-size:12px;padding:6px 10px" onchange="renderSurveyDetail()">
+          <option value="">All Properties</option>
+        </select>
+        <button class="btn btn-reject btn-sm" onclick="clearAllRatings()" style="margin-left:auto">🗑 Clear All Ratings</button>
+      </div>
+      <div id="survey-detail-list">
+        <div style="text-align:center;padding:24px;color:#7a9aaa">No ratings yet.</div>
       </div>
     </div>
   </div>
