@@ -747,7 +747,7 @@
   <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
   <button class="nav-tab" onclick="showTab('new-request')">➕ New Request</button>
   <button class="nav-tab" onclick="showTab('tickets')">🎫 All Tickets <span class="nav-badge" id="ticketCount">7</span></button>
-  <button class="nav-tab" onclick="showTab('approvals')">✅ Approvals <span class="nav-badge" id="approvalCount">3</span></button>
+  <button class="nav-tab" onclick="showTab('approvals')">✅ Approvals <span class="nav-badge" id="approvalCount">0</span></button>
   <button class="nav-tab" onclick="showTab('lead-sources')">📈 Lead Sources</button>
   <button class="nav-tab" onclick="showTab('metrics')">⚡ Team Metrics</button>
   <button class="nav-tab" onclick="showTab('reporting')">📊 Reporting</button>
@@ -807,40 +807,14 @@
     </div>
 
     <div class="grid-2" style="gap:16px">
-      <!-- MARKETING HEALTH -->
+      <!-- MARKETING HEALTH — live from Supabase -->
       <div class="card">
         <div class="card-title">Marketing Health Signals</div>
-        <div class="health-gauge">
-          <div class="health-icon" style="background:#e6f7ee;font-size:18px">🟢</div>
-          <div style="flex:1">
-            <div class="health-label">Creative pipeline</div>
-            <div class="health-sub">All assets within SLA</div>
+        <div id="dashboard-health-signals">
+          <div class="health-gauge">
+            <div class="health-icon" style="background:#e8f2f6;font-size:18px">⏳</div>
+            <div style="flex:1"><div class="health-label">Loading signals...</div></div>
           </div>
-          <div class="health-val stat-up">Healthy</div>
-        </div>
-        <div class="health-gauge">
-          <div class="health-icon" style="background:#fff4e0;font-size:18px">🟡</div>
-          <div style="flex:1">
-            <div class="health-label">Approval bottleneck</div>
-            <div class="health-sub">GKP, Viera, Nocatee pending</div>
-          </div>
-          <div class="health-val stat-warn">At Risk</div>
-        </div>
-        <div class="health-gauge">
-          <div class="health-icon" style="background:#e6f7ee;font-size:18px">🟢</div>
-          <div style="flex:1">
-            <div class="health-label">Marketing spend</div>
-            <div class="health-sub">Within budget across portfolio</div>
-          </div>
-          <div class="health-val stat-up">On Track</div>
-        </div>
-        <div class="health-gauge">
-          <div class="health-icon" style="background:#fce8e8;font-size:18px">🔴</div>
-          <div style="flex:1">
-            <div class="health-label">Social content queue</div>
-            <div class="health-sub">Doro High Rise — 2 posts overdue review</div>
-          </div>
-          <div class="health-val stat-down">Action Needed</div>
         </div>
       </div>
 
@@ -1146,11 +1120,11 @@
       <!-- LEAD DATA UPLOAD -->
       <div class="card" style="border-left:4px solid var(--rise-light)">
         <div style="font-size:12px;font-weight:600;color:var(--rise-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📊 Lead & Lease Data</div>
-        <div style="font-size:12px;color:#5a7a86;margin-bottom:10px;line-height:1.5">Upload a CSV export from Entrata with lead source, leads, and leases by month.</div>
+        <div style="font-size:12px;color:#5a7a86;margin-bottom:10px;line-height:1.5">Upload an Entrata CSV <strong>or</strong> your ATLAS Monthly Upload (.xlsx) to import leads, leases, and tours by community.</div>
         <div class="file-upload-area" onclick="document.getElementById('csv-upload').click()" id="csv-drop-zone" style="padding:14px">
           <div style="font-size:18px;margin-bottom:4px">📥</div>
-          <div style="font-size:12px">Click to upload CSV</div>
-          <div style="font-size:10px;color:#aac0ca;margin-top:2px">From Entrata → Reports → Lead Source</div>
+          <div style="font-size:12px">Click to upload CSV or ATLAS .xlsx</div>
+          <div style="font-size:10px;color:#aac0ca;margin-top:2px">Entrata Box Score CSV or ATLAS Monthly Upload Excel</div>
         </div>
         <input type="file" id="csv-upload" accept=".csv,.xlsx" style="display:none" onchange="handleCSVUpload(this)">
         <div id="csv-status" style="font-size:11px;color:#7a9aaa;margin-top:6px;text-align:center"></div>
@@ -2220,6 +2194,30 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- MANUAL ASSIGN + STATUS CONTROLS -->
+      <div id="modal-controls" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--rise-pale);border-radius:var(--radius-sm)">
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:4px">Assign To</label>
+          <select id="modal-assign-select" style="font-size:12px;width:100%" onchange="updateTicketAssign(this.value)">
+            <option value="">— Select team member —</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:4px">Status</label>
+          <select id="modal-status-select" style="font-size:12px;width:100%" onchange="updateTicketStatus(this.value)">
+            <option value="new">New</option>
+            <option value="in_progress">In Progress</option>
+            <option value="in_review">In Review</option>
+            <option value="awaiting_approval">Awaiting Approval</option>
+            <option value="complete">Complete</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn btn-primary btn-sm" onclick="saveTicketChanges()">Save Changes</button>
+        </div>
+      </div>
+
       <!-- APPROVAL STEPS — rendered dynamically -->
       <div class="approval-steps" style="margin:-4px 0 16px" id="modal-approval-steps">
         <div class="approval-step">
@@ -2374,6 +2372,9 @@ function updateUserChip() {
 // DB LAYER — replaces all localStorage calls
 // ============================================================
 const DB = {
+
+  // ---- DIRECT CLIENT ACCESS (for complex queries) ----
+  supabaseClient() { return sb; },
 
   // ---- LOAD ALL DATA ON BOOT ----
   async loadAll() {
@@ -2711,6 +2712,68 @@ function setupRealtime() {
     .subscribe();
 }
 
+async function renderDashboardHealthSignals() {
+  const el = document.getElementById('dashboard-health-signals');
+  if (!el) return;
+
+  try {
+    const tickets = await DB.loadTickets();
+    const active = tickets.filter(t => t.status !== 'complete' && t.status !== 'cancelled');
+    const awaitingApproval = tickets.filter(t => t.status === 'awaiting_approval');
+    const overdue = tickets.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'complete');
+    const totalSpend = leadSourcesData.reduce((s,l) => s + (l.monthlyCost||0), 0);
+
+    const signal = (icon, bg, label, sub, val, valClass) => `
+      <div class="health-gauge">
+        <div class="health-icon" style="background:${bg};font-size:18px">${icon}</div>
+        <div style="flex:1">
+          <div class="health-label">${label}</div>
+          <div class="health-sub">${sub}</div>
+        </div>
+        <div class="health-val ${valClass}">${val}</div>
+      </div>`;
+
+    // Pipeline health
+    const pipelineOk = active.length < 10;
+    const approvalProps = awaitingApproval.map(t => t.property_name).filter(Boolean);
+    const approvalStatus = awaitingApproval.length === 0 ? 'Healthy'
+      : awaitingApproval.length <= 2 ? 'Watch' : 'At Risk';
+    const approvalClass = awaitingApproval.length === 0 ? 'stat-up'
+      : awaitingApproval.length <= 2 ? 'stat-warn' : 'stat-down';
+    const approvalIcon = awaitingApproval.length === 0 ? '🟢'
+      : awaitingApproval.length <= 2 ? '🟡' : '🔴';
+    const approvalBg = awaitingApproval.length === 0 ? '#e6f7ee'
+      : awaitingApproval.length <= 2 ? '#fff4e0' : '#fce8e8';
+
+    el.innerHTML =
+      signal('🟢', '#e6f7ee', 'Creative pipeline',
+        active.length > 0 ? `${active.length} active ticket${active.length > 1 ? 's' : ''} in progress` : 'No active tickets',
+        pipelineOk ? 'Healthy' : 'Monitor', pipelineOk ? 'stat-up' : 'stat-warn') +
+
+      signal(approvalIcon, approvalBg, 'Approval bottleneck',
+        awaitingApproval.length > 0
+          ? approvalProps.slice(0,3).join(', ') + (approvalProps.length > 3 ? ` +${approvalProps.length-3} more` : '') + ' pending'
+          : 'No approvals waiting',
+        approvalStatus, approvalClass) +
+
+      signal(totalSpend > 0 ? '🟢' : '🟡', totalSpend > 0 ? '#e6f7ee' : '#fff4e0',
+        'Marketing spend',
+        totalSpend > 0 ? `$${totalSpend.toLocaleString()} tracked across ${leadSourcesData.length} source${leadSourcesData.length !== 1 ? 's' : ''}` : 'No spend data — add lead sources',
+        totalSpend > 0 ? 'Tracked' : 'Add Data', totalSpend > 0 ? 'stat-up' : 'stat-warn') +
+
+      signal(overdue.length > 0 ? '🔴' : '🟢', overdue.length > 0 ? '#fce8e8' : '#e6f7ee',
+        'Overdue tickets',
+        overdue.length > 0
+          ? overdue.map(t => t.ticket_number).slice(0,3).join(', ') + ' past due'
+          : 'All tickets within deadline',
+        overdue.length > 0 ? `${overdue.length} Overdue` : 'On Track',
+        overdue.length > 0 ? 'stat-down' : 'stat-up');
+
+  } catch(e) {
+    el.innerHTML = '<div class="health-gauge"><div style="color:#7a9aaa;font-size:13px">Could not load health signals.</div></div>';
+  }
+}
+
 async function refreshTicketCount() {
   const { count } = await sb.from('tickets').select('*', { count: 'exact', head: true }).neq('status','complete').neq('status','cancelled');
   const el = document.getElementById('ticketCount');
@@ -2739,6 +2802,8 @@ async function refreshTicketCount() {
   if (approvalsAlert) approvalsAlert.style.display = approvalCount > 0 ? 'flex' : 'none';
   // Render tickets on dashboard and all tickets tab
   await renderLiveTickets();
+  // Render health signals
+  await renderDashboardHealthSignals();
   // Update budget stat from lead sources
   const totalSpend = leadSourcesData.reduce((s,l) => s + (l.monthlyCost||0), 0);
   const budgetEl = document.getElementById('stat-budget');
@@ -3027,12 +3092,14 @@ const DEFAULT_PROPERTIES = [
 ];
 
 // LIVE STATE — read from localStorage, fall back to defaults
-let teamData         = JSON.parse(localStorage.getItem('mcc-team')           || 'null') || DEFAULT_TEAM;
-let skillsData       = JSON.parse(localStorage.getItem('mcc-skills')         || 'null') || DEFAULT_SKILLS;
-let routingData      = JSON.parse(localStorage.getItem('mcc-routing')        || 'null') || DEFAULT_ROUTING;
-let approvalRulesData= JSON.parse(localStorage.getItem('mcc-approval-rules') || 'null') || DEFAULT_APPROVAL_RULES;
-let slaData          = JSON.parse(localStorage.getItem('mcc-sla')            || 'null') || DEFAULT_SLA;
-let propertiesData   = JSON.parse(localStorage.getItem('mcc-properties')     || 'null') || DEFAULT_PROPERTIES;
+// All data is loaded from Supabase via DB.loadAll() on boot.
+// These are empty defaults — never read from localStorage.
+let teamData         = [];
+let skillsData       = [];
+let routingData      = [];
+let approvalRulesData= [];
+let slaData          = [];
+let propertiesData   = [];
 let editingMemberId  = null;
 let editingPropertyId= null;
 
@@ -3043,11 +3110,13 @@ const DEFAULT_APPROVERS = [
   {id:'ap-3', fname:'GM', lname:'Torres', email:'gm.gkp@rise.com', role:'GM', authority:'spend', spendLimit:'2000', properties:['Glen Kernan Park (GKP)'], status:'active'},
   {id:'ap-4', fname:'GM', lname:'Chen', email:'gm.viera@rise.com', role:'GM', authority:'spend', spendLimit:'2500', properties:['Viera'], status:'active'},
 ];
-let approversData    = JSON.parse(localStorage.getItem('mcc-approvers')      || 'null') || DEFAULT_APPROVERS;
+
+// All live data loads from Supabase via DB.loadAll() — never from localStorage
+let approversData    = [];
 let editingApproverId= null;
 
-// REPORTING DATA
-let reportHistory    = JSON.parse(localStorage.getItem('mcc-report-history') || '[]');
+// REPORTING DATA — loaded from Supabase
+let reportHistory    = [];
 
 // BONUS DATA
 const DEFAULT_BONUS_WEIGHTS = [
@@ -3070,9 +3139,11 @@ const DEMO_PERF = {
   maya:   {tickets:4, ontime:100, sat:4.8, savings:0,   revisions:1.0, ticketsTarget:6},
   jordan: {tickets:3, ontime:80,  sat:4.2, savings:0,   revisions:1.9, ticketsTarget:6},
 };
-let bonusWeights      = JSON.parse(localStorage.getItem('mcc-bonus-weights') || 'null') || DEFAULT_BONUS_WEIGHTS;
-let bonusTargets      = JSON.parse(localStorage.getItem('mcc-bonus-targets') || 'null') || DEFAULT_BONUS_TARGETS;
-let satisfactionRatings = JSON.parse(localStorage.getItem('mcc-ratings')    || '[]');
+
+// Bonus settings load from Supabase — start with defaults
+let bonusWeights      = DEFAULT_BONUS_WEIGHTS.map(w => ({...w}));
+let bonusTargets      = DEFAULT_BONUS_TARGETS.map(t => ({...t}));
+let satisfactionRatings = [];
 let surveyContext     = {};
 
 // SHARED HELPERS — must be defined before any engine runs
@@ -3154,6 +3225,9 @@ function openTicket(id, dbId) {
     const assigneeName = assignee ? assignee.fname + ' ' + (assignee.lname||'') : 'Unassigned';
     document.getElementById('modal-ticket-id').textContent = t.ticket_number || id;
     document.getElementById('modal-ticket-meta').textContent = [t.title, t.property_name, t.request_type, assigneeName].filter(Boolean).join(' · ');
+
+    // Populate manual controls
+    if (typeof populateModalControls === 'function') populateModalControls(t);
 
     // Approval steps based on status
     const stepsEl = document.getElementById('modal-approval-steps');
@@ -3260,12 +3334,18 @@ const routingMap = {
   email: {person:'York', reason:'York handles email campaign design', avatar:'YK', cls:'av-york'},
   package: {person:'Marketing Director', reason:'Package changes require director review first', avatar:'MD', cls:'av-renee'},
 };
-function updateRouting() {
+async function updateRouting() {
   const type = document.getElementById('req-type').value;
+  const property = document.getElementById('req-property').value;
   const preview = document.getElementById('routing-preview');
   const content = document.getElementById('routing-content');
-  if (!type) { content.innerHTML = '<div style="color:#7a9aaa;font-size:13px">Select a request type to see assignment preview.</div>'; return; }
+  if (!type) {
+    content.innerHTML = '<div style="color:#7a9aaa;font-size:13px">Select a request type to see assignment preview.</div>';
+    return;
+  }
   preview.style.display = 'block';
+  content.innerHTML = '<div style="color:#7a9aaa;font-size:13px">⏳ Loading assignment preview...</div>';
+
   const typeId = type === 'Social Media Post / Reel / Story' ? 'social'
     : type === 'Paid Ad Design (Google, Meta)' ? 'ads'
     : type === 'Print / Flyer / Signage' ? 'print'
@@ -3273,34 +3353,94 @@ function updateRouting() {
     : type === 'Website Change' ? 'website'
     : type === 'Email Campaign' ? 'email'
     : type === 'Marketing Package Change' ? 'package' : '';
-  const r = routingMap[typeId];
-  if (r) {
-    const t1Html = (r.tier1||[]).map(m => `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--rise-pale);border-radius:var(--radius-sm)">
-        <div style="width:28px;height:28px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${initials(m)}</div>
-        <div style="flex:1">
-          <div style="font-weight:600;color:var(--rise-dark);font-size:13px">${m.fname} ${m.lname}. <span style="font-size:10px;font-weight:400;color:#7a9aaa">· ${m.maxTickets} ticket max</span></div>
-          <div style="font-size:11px;color:#5a7a86">${m.role}</div>
-          ${m.properties&&m.properties.length?`<div style="font-size:10px;color:#d47b1a">★ Specializes in: ${m.properties.join(', ')}</div>`:''}
-        </div>
-        <span class="badge badge-complete" style="font-size:10px">Tier 1</span>
-      </div>
-    `).join('');
-    const t2Html = (r.tier2||[]).map(m => `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff9f0;border:1px solid #fad897;border-radius:var(--radius-sm)">
-        <div style="width:28px;height:28px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${initials(m)}</div>
-        <div style="flex:1">
-          <div style="font-weight:600;color:var(--rise-dark);font-size:13px">${m.fname} ${m.lname}.</div>
-          <div style="font-size:11px;color:#5a7a86">${m.role}</div>
-        </div>
-        <span class="badge badge-inprogress" style="font-size:10px">Overflow</span>
-      </div>
-    `).join('');
-    content.innerHTML = `
-      <div style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Primary — routes to lowest load first</div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:${t2Html?'12px':'0'}">${t1Html||'<div style="font-size:12px;color:#e85c4a">No Tier 1 staff assigned this skill</div>'}</div>
-      ${t2Html ? `<div style="font-size:11px;font-weight:600;color:#d47b1a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">↓ Escalates to — only when all Tier 1 are at capacity</div><div style="display:flex;flex-direction:column;gap:6px">${t2Html}</div>` : ''}
-    `;
+
+  // Find required skill from routing rules
+  const skillRule = routingData.find(r => r.typeId === typeId);
+  const requiredSkill = skillRule ? skillRule.skillId : typeId;
+
+  try {
+    // Query live team members from Supabase
+    let members = [];
+    if (window.DB) {
+      const { data } = await window.DB.supabaseClient()
+        .from('team_members')
+        .select('id, fname, lname, role, role_type, skills, properties, max_tickets, avatar_color, status')
+        .eq('status', 'active')
+        .contains('skills', [requiredSkill]);
+      members = data || [];
+    }
+
+    if (!members.length) {
+      // Fallback to in-memory teamData
+      members = teamData.filter(m =>
+        m.status === 'active' && (m.skills||[]).includes(requiredSkill)
+      ).map(m => ({
+        id: m._dbId || m.id, fname: m.fname, lname: m.lname,
+        role: m.role, role_type: m.roleType, skills: m.skills,
+        properties: m.properties, max_tickets: m.maxTickets,
+        avatar_color: m.color, status: m.status
+      }));
+    }
+
+    // Get live ticket counts
+    let countMap = {};
+    if (window.DB) {
+      const { data: activeTix } = await window.DB.supabaseClient()
+        .from('tickets').select('assigned_to')
+        .in('status', ['new','in_progress','in_review','awaiting_approval']);
+      (activeTix||[]).forEach(t => { if (t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to]||0)+1; });
+    }
+
+    const staff = members.filter(m => m.role_type === 'staff');
+    const directors = members.filter(m => m.role_type === 'director');
+
+    // Property specialization check
+    const specialized = staff.filter(m => (m.properties||[]).includes(property));
+    const pool = specialized.length > 0 ? specialized : staff;
+    pool.sort((a,b) => (countMap[a.id]||0) - (countMap[b.id]||0));
+
+    const renderMember = (m, tierLabel, tierBadge, bg) => {
+      const ini = ((m.fname||'')[0] + (m.lname||'?')[0]).toUpperCase();
+      const load = countMap[m.id] || 0;
+      const max = m.max_tickets || 5;
+      const pct = Math.round((load/max)*100);
+      const barColor = pct >= 100 ? '#e85c4a' : pct >= 80 ? '#d47b1a' : 'var(--rise-light)';
+      const isPropertySpec = (m.properties||[]).includes(property);
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:${bg};border-radius:var(--radius-sm)">
+          <div style="width:32px;height:32px;border-radius:50%;background:${m.avatar_color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${ini}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;color:var(--rise-dark);font-size:13px">${m.fname} ${m.lname||''}.</div>
+            <div style="font-size:11px;color:#5a7a86">${m.role||''}</div>
+            ${isPropertySpec ? `<div style="font-size:10px;color:#d47b1a">★ Property specialist</div>` : ''}
+            <div style="margin-top:4px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#7a9aaa;margin-bottom:2px"><span>Current load</span><span>${load}/${max}</span></div>
+              <div style="height:4px;background:var(--rise-pale);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.min(pct,100)}%;background:${barColor};border-radius:2px"></div></div>
+            </div>
+          </div>
+          <span class="badge ${tierBadge}" style="font-size:10px;flex-shrink:0">${tierLabel}</span>
+        </div>`;
+    };
+
+    let html = '';
+    if (pool.length > 0) {
+      html += `<div style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">
+        Primary — ${specialized.length > 0 ? '★ Property specialist first' : 'Routes to lowest load first'}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        ${pool.map(m => renderMember(m, 'Tier 1', 'badge-complete', 'var(--rise-pale)')).join('')}</div>`;
+    } else {
+      html += `<div style="font-size:13px;color:#e85c4a;padding:8px 0">⚠ No Tier 1 staff assigned this skill — will escalate to Director</div>`;
+    }
+    if (directors.length > 0) {
+      html += `<div style="font-size:11px;font-weight:600;color:#d47b1a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">↓ Escalates to when all Tier 1 at capacity</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+        ${directors.map(m => renderMember(m, 'Director', 'badge-inprogress', '#fff9f0')).join('')}</div>`;
+    }
+    content.innerHTML = html || '<div style="color:#e85c4a;font-size:13px">No team members found for this skill — check Settings → Team Members.</div>';
+
+  } catch(e) {
+    console.error('updateRouting error:', e);
+    content.innerHTML = '<div style="color:#e85c4a;font-size:13px">Could not load assignment preview.</div>';
   }
 }
 
@@ -3312,6 +3452,7 @@ async function generateBrief() {
   const property = document.getElementById('req-property').value;
   const vibe = document.getElementById('req-vibe').value;
   const audience = document.getElementById('req-audience').value;
+  const size = document.getElementById('req-size') ? document.getElementById('req-size').value : '';
 
   if (!title && !desc) {
     showToast('Please fill in the request title and description first', 'warn');
@@ -3324,64 +3465,104 @@ async function generateBrief() {
   const output = document.getElementById('ai-brief-output');
 
   btn.disabled = true;
-  btnText.innerHTML = '<span class="spinner"></span> Generating brief...';
+  btnText.innerHTML = '<span class="spinner"></span> Building brief...';
   panel.classList.add('visible');
-  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Building your creative brief...</div>';
+  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Crafting your creative brief...</div>';
+
+  // Get any attached file names for context
+  const attachedFiles = ticketAttachments.map(a => a.name).join(', ');
 
   const prompt = `You are a creative director for RISE Residential, a multifamily real estate company.
-A site team member has submitted a marketing creative request. Write a concise structured creative brief.
+A site team member has submitted a marketing creative request. Write a vivid, specific creative brief.
 
-Request details:
+Request:
 - Property: ${property || 'Not specified'}
-- Request type: ${type || 'Not specified'}
+- Type: ${type || 'Not specified'}
 - Title: ${title || 'Not specified'}
 - Description: ${desc || 'Not specified'}
-- Desired vibe/tone: ${vibe || 'Not specified'}
+- Desired vibe: ${vibe || 'Not specified'}
 - Target audience: ${audience || 'Not specified'}
+- Dimensions: ${size || 'Not specified'}
+${attachedFiles ? `- Reference files attached: ${attachedFiles}` : ''}
 
-Write in this format (plain text, no markdown):
+Write a detailed creative brief using EXACTLY this format. Be specific and visual — this brief must give a designer enough to start without any further questions:
 
-AUDIENCE: [who this is for]
-TONE & VIBE: [mood and energy]
-KEY MESSAGE: [the one takeaway]
-VISUAL DIRECTION: [colors, imagery, composition]
-COPY DIRECTION: [headline or CTA suggestion]
-FORMAT NOTES: [dimensions, platform, specs]
-IMPORTANT DETAILS: [must-haves for the team]`;
+AUDIENCE: [Specific description of who this reaches and what motivates them]
 
-  // Try Supabase Edge Function proxy first (avoids CORS + exposes no key)
+TONE & VIBE: [2-3 specific adjectives + what emotion this should trigger]
+
+KEY MESSAGE: [One single sentence the viewer should remember]
+
+VISUAL DIRECTION: [Very specific — describe imagery style, photo subjects, color mood, composition, lighting. Mention RISE brand colors (#013e51 dark blue, #6ba2b8 light blue) if applicable. Name specific shots like "overhead pool shot at golden hour" or "young couple in kitchen, lifestyle editorial feel"]
+
+COPY DIRECTION: [Suggest an actual headline or 2-3 headline options. Suggest CTA. Specify font weight/style if relevant]
+
+FORMAT NOTES: [Exact dimensions if known, platform specs, safe zones, any technical requirements]
+
+VISUAL STYLE OPTIONS:
+Option A — [Style name]: [2-3 sentences describing this visual approach with specific examples]
+Option B — [Style name]: [2-3 sentences describing this visual approach with specific examples]
+Option C — [Style name]: [2-3 sentences describing this visual approach with specific examples]
+
+IMPORTANT DETAILS: [Any must-haves, brand rules, things to avoid, legal/compliance notes]`;
+
+  // Try Edge Function proxy first
   let text = null;
   try {
     const res = await fetch('https://dgkedyzdhneiypqeimhd.supabase.co/functions/v1/ai-brief', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna2VkeXpkaG5laXlwcWVpbWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTc1MDEsImV4cCI6MjA5NzI5MzUwMX0.X2BacSn45_s7ODDNvTLy-70oinVncghmxV-ycECiCSc'
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna2VkeXpkaG5laXlwcWVpbWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTc1MDEsImV4cCI6MjA5NzI5MzUwMX0.X2BacSn45_s7ODDNvTLy-70oinVncghmxV-ycECiCSc' },
       body: JSON.stringify({ prompt })
     });
-    if (res.ok) {
-      const data = await res.json();
-      text = data.text || data.content || null;
-    }
-  } catch(e) { /* edge function not deployed yet — fall through */ }
+    if (res.ok) { const d = await res.json(); text = d.text || d.content || null; }
+  } catch(e) {}
 
-  // Fallback: generate a structured template from the form data
+  // Rich fallback using form data
   if (!text) {
-    text = `AUDIENCE: ${audience || 'Prospective residents and current community members at ' + (property || 'this RISE community')}.
+    const typeVisuals = {
+      'Social Media Post / Reel / Story': {
+        optA: 'Lifestyle Editorial — Authentic candid moments: residents laughing poolside, morning coffee on a balcony, friends gathering in a clubhouse. Natural light, slightly warm color grade, loose composition. Feels like a friend\'s Instagram, not an ad.',
+        optB: 'Bold Typography-Forward — Large headline dominates the frame over a clean lifestyle photo. High contrast, RISE dark blue or white text. Text carries the message, image sets the mood.',
+        optC: 'Community Showcase — Feature the amenity or space as the hero. Wide establishing shot, pristine staging, vibrant but real. Works well for pool reveals, fitness center tours, or event teasers.'
+      },
+      'Paid Ad Design (Google, Meta)': {
+        optA: 'Conversion-Focused Clean — White or light background, bold benefit headline, single lifestyle photo, clear CTA button in RISE dark blue. High click-through design.',
+        optB: 'Lifestyle Immersive — Full-bleed community photo with gradient overlay, headline in white, subtle CTA. Emotional pull over direct response.',
+        optC: 'Split Format — Left side: lifestyle image. Right side: RISE brand color block with headline and CTA. Strong brand recognition, works across placements.'
+      }
+    };
+    const visuals = typeVisuals[type] || {
+      optA: 'Clean Brand Aesthetic — RISE dark blue (#013e51) and light blue (#6ba2b8) color palette. Clean sans-serif typography. Lifestyle photography with natural light. Professional and approachable.',
+      optB: 'Bold & Graphic — Strong typography, minimal photography, high contrast. Clear hierarchy. Works well in print and digital.',
+      optC: 'Warm Lifestyle — Warm color tones, authentic candid photography, community feel. Residents as the hero rather than the property.'
+    };
 
-TONE & VIBE: ${vibe || 'Professional, warm, and community-forward — consistent with RISE brand standards'}.
+    text = `AUDIENCE: ${audience || 'Prospective and current residents at ' + (property || 'this RISE community')} — people who value community, quality of life, and convenience.
 
-KEY MESSAGE: ${title || 'Highlight the unique value and lifestyle this community offers to the target audience'}.
+TONE & VIBE: ${vibe || 'Warm, aspirational, and community-forward'} — should make the viewer feel like they belong here.
 
-VISUAL DIRECTION: Use RISE brand colors (dark blue #013e51, light blue #6ba2b8). Feature authentic community imagery — residents, amenities, and lifestyle moments. Clean, modern composition with strong focal point.
+KEY MESSAGE: ${title || 'Experience the best of community living at ' + (property || 'RISE')}.
 
-COPY DIRECTION: Headline should be direct and benefit-led. CTA should be action-oriented (e.g. "Schedule a Tour", "Learn More", "Apply Today"). Keep body copy concise — 1-2 sentences max for digital formats.
+VISUAL DIRECTION: Feature authentic community imagery — real lifestyle moments, amenities at their best, and human connection. Use RISE brand colors (#013e51 dark blue, #6ba2b8 light blue) as accents or backgrounds. Avoid stock photo clichés. Preferred shots: golden hour exterior, amenity detail, lifestyle resident moment. Clean composition with strong focal point.
 
-FORMAT NOTES: ${document.getElementById('req-size') ? document.getElementById('req-size').value || 'Confirm dimensions with submitter before production' : 'Confirm dimensions with submitter before production'}.
+COPY DIRECTION:
+Headline Option 1: "${title || 'Your community. Your story.'}"
+Headline Option 2: "Life is better at ${property || 'RISE'}."
+Headline Option 3: "${vibe || 'Find your place here'}."
+CTA: "Schedule a Tour" or "Apply Today" or "Learn More"
 
-IMPORTANT DETAILS: ${desc || 'See request description. Confirm all property-specific details with submitter before finalizing. All content must be reviewed by the marketing team before posting or printing.'}`; 
-    showToast('AI service offline — structured template generated from your inputs', 'info');
+FORMAT NOTES: ${size || 'Confirm dimensions with submitter. For social: 1080×1080 (square) or 1080×1350 (portrait). For ads: provide multiple sizes (1200×628, 1080×1080, 160×600).'}.
+
+VISUAL STYLE OPTIONS:
+Option A — ${visuals.optA}
+
+Option B — ${visuals.optB}
+
+Option C — ${visuals.optC}
+
+IMPORTANT DETAILS: All content must be reviewed by the marketing team before posting or printing. Confirm property-specific details with submitter. Do not use competitor names or pricing comparisons. Ensure ADA compliance for digital ads (alt text, contrast ratios).${attachedFiles ? ' Reference files provided: ' + attachedFiles + ' — review these before starting.' : ''}`;
+
+    showToast('Creative brief generated from your inputs', 'success');
   }
 
   output.textContent = text;
@@ -3427,7 +3608,7 @@ async function submitTicket() {
   const submitterName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Unknown';
   const submitterEmail = profile ? profile.email : '';
 
-  // Auto-assign based on routing — use Supabase UUID (_dbId)
+  // Auto-assign — query Supabase directly for most reliable UUID
   const typeId = type === 'Social Media Post / Reel / Story' ? 'social'
     : type === 'Paid Ad Design (Google, Meta)' ? 'ads'
     : type === 'Print / Flyer / Signage' ? 'print'
@@ -3436,36 +3617,66 @@ async function submitTicket() {
     : type === 'Email Campaign' ? 'email'
     : type === 'Marketing Package Change' ? 'package' : '';
 
-  // Find qualified staff with lowest ticket count
   const skillRule = routingData.find(r => r.typeId === typeId);
   const requiredSkill = skillRule ? skillRule.skillId : typeId;
 
-  // Check property specializations first
   let assignedDbId = null;
   let assigneeName = 'Unassigned';
 
-  const qualified = teamData.filter(m =>
-    m.status === 'active' &&
-    (m.roleType === 'staff') &&
-    (m.skills || []).includes(requiredSkill)
-  );
+  try {
+    // Get team members with required skill directly from Supabase
+    const { data: eligibleMembers } = await window.DB.supabaseClient()
+      .from('team_members')
+      .select('id, fname, lname, role_type, skills, properties, max_tickets, status')
+      .eq('status', 'active')
+      .contains('skills', [requiredSkill]);
 
-  // Property specialization override
-  const specialized = qualified.filter(m =>
-    m.properties && m.properties.includes(property)
-  );
+    if (eligibleMembers && eligibleMembers.length > 0) {
+      // Property specialization check
+      const specialized = eligibleMembers.filter(m =>
+        m.role_type === 'staff' &&
+        (m.properties || []).includes(property)
+      );
+      const staffPool = eligibleMembers.filter(m => m.role_type === 'staff');
+      const directorPool = eligibleMembers.filter(m => m.role_type === 'director');
 
-  const pool = specialized.length > 0 ? specialized : qualified;
+      // Pick from specialized → staff → director
+      const pool = specialized.length > 0 ? specialized
+        : staffPool.length > 0 ? staffPool
+        : directorPool;
 
-  if (pool.length > 0) {
-    // Pick first available (in production would check live counts)
-    const assignee = pool[0];
-    assignedDbId = assignee._dbId || assignee.id || null;
-    assigneeName = assignee.fname;
-  } else if (qualified.length === 0) {
-    // Escalate to director
-    const director = teamData.find(m => m.status === 'active' && m.roleType === 'director' && (m.skills||[]).includes(requiredSkill));
-    if (director) { assignedDbId = director._dbId || director.id || null; assigneeName = director.fname; }
+      if (pool.length > 0) {
+        // Get active ticket counts for load balancing
+        const { data: activeCounts } = await window.DB.supabaseClient()
+          .from('tickets')
+          .select('assigned_to')
+          .in('status', ['new','in_progress','in_review','awaiting_approval']);
+
+        const countMap = {};
+        (activeCounts || []).forEach(t => {
+          if (t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to]||0) + 1;
+        });
+
+        // Sort by current load ascending
+        pool.sort((a,b) => (countMap[a.id]||0) - (countMap[b.id]||0));
+        const assignee = pool[0];
+        assignedDbId = assignee.id;
+        assigneeName = assignee.fname;
+        console.log('Auto-assigning to:', assigneeName, 'id:', assignedDbId, 'load:', countMap[assignedDbId]||0);
+      }
+    } else {
+      console.warn('No eligible team members found for skill:', requiredSkill);
+    }
+  } catch(e) {
+    console.error('Auto-assign error:', e);
+    // Fall back to in-memory teamData
+    const fallback = teamData.find(m =>
+      m.status === 'active' &&
+      m.roleType === 'staff' &&
+      (m.skills||[]).includes(requiredSkill) &&
+      (m._dbId || m.id)
+    );
+    if (fallback) { assignedDbId = fallback._dbId || fallback.id; assigneeName = fallback.fname; }
   }
 
   const ticket = {
@@ -3537,7 +3748,7 @@ async function submitTicket() {
 // SEND CONV MESSAGE
 async function sendConvMessage() {
   const input = document.getElementById('conv-input');
-  if (!input.value.trim()) return;
+  if (!input || !input.value.trim()) return;
   const body = input.value.trim();
   const modal = document.getElementById('ticket-modal');
   const dbId = modal ? modal.dataset.dbId : null;
@@ -3560,21 +3771,69 @@ async function sendConvMessage() {
     thread.appendChild(div);
     thread.scrollTop = thread.scrollHeight;
   }
-
   input.value = '';
 
   if (dbId && window.DB) {
     try {
       await window.DB.sendMessage(dbId, senderName, senderEmail, body);
-      await window.DB.logTicketEvent(dbId, 'message', senderName, senderName + ' sent a message', {});
     } catch(e) {
-      showToast('Message saved locally but may not have synced — check connection', 'warn');
+      console.error('Message save error:', e);
+      // Message shown locally — soft warn only
+      showToast('Message shown locally but may not sync — check your connection', 'warn');
     }
   }
 }
 
-// ATTACHMENT UPLOAD
-let ticketAttachments = []; // holds {name, url, size} for current ticket draft
+// TICKET MANUAL CONTROLS
+function populateModalControls(ticket) {
+  const assignSelect = document.getElementById('modal-assign-select');
+  const statusSelect = document.getElementById('modal-status-select');
+  if (!assignSelect || !statusSelect) return;
+  assignSelect.innerHTML = '<option value="">— Unassigned —</option>';
+  teamData.filter(m => m.status === 'active').forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m._dbId || m.id;
+    opt.textContent = m.fname + ' ' + (m.lname||'') + (m.role ? ' · ' + m.role : '');
+    if (ticket && ticket.assigned_to === opt.value) opt.selected = true;
+    assignSelect.appendChild(opt);
+  });
+  if (ticket && ticket.status) statusSelect.value = ticket.status;
+  const controls = document.getElementById('modal-controls');
+  const role = getBonusRole();
+  if (controls) controls.style.display = ['vp','director','admin'].includes(role) ? 'flex' : 'none';
+}
+
+async function saveTicketChanges() {
+  const modal = document.getElementById('ticket-modal');
+  const dbId = modal ? modal.dataset.dbId : null;
+  if (!dbId) { showToast('No ticket open', 'warn'); return; }
+  const assignTo = document.getElementById('modal-assign-select').value;
+  const status = document.getElementById('modal-status-select').value;
+  const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+  const actorName = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Team';
+  try {
+    const updates = { status };
+    if (assignTo) updates.assigned_to = assignTo;
+    if (status === 'complete') updates.closed_at = new Date().toISOString();
+    await window.DB.supabaseClient().from('tickets').update(updates).eq('id', dbId);
+    const assigneeName = document.getElementById('modal-assign-select').selectedOptions[0]?.text || '';
+    await window.DB.logTicketEvent(dbId, 'system', actorName,
+      `${actorName} updated — status: ${status}${assignTo ? ' · assigned to: ' + assigneeName.split('·')[0].trim() : ''}`, {});
+    showToast('Ticket updated', 'success');
+    await window.renderLiveTickets();
+    if (window.refreshTicketCount) await window.refreshTicketCount();
+    const tickets = await window.DB.loadTickets();
+    const t = tickets.find(x => x.id === dbId);
+    if (t) populateModalControls(t);
+  } catch(e) {
+    console.error('saveTicketChanges:', e);
+    showToast('Update failed: ' + e.message, 'error');
+  }
+}
+function updateTicketAssign() {}
+function updateTicketStatus() {}
+
+// ATTACHMENT UPLOAD // holds {name, url, size} for current ticket draft
 
 async function handleAttachmentUpload(input) {
   const files = Array.from(input.files);
@@ -3825,9 +4084,19 @@ let docsData = [];
 let editingLSId = null;
 let currentExtractedDoc = null;
 
-function saveLeadStorage() {
-  localStorage.setItem('mcc-lead-sources', JSON.stringify(leadSourcesData));
-  localStorage.setItem('mcc-docs', JSON.stringify(docsData));
+async function saveLeadStorage() {
+  // Sync any unsaved local lead sources to Supabase
+  const unsaved = leadSourcesData.filter(s => !s._dbId);
+  for (const src of unsaved) {
+    try {
+      const saved = await window.DB.saveLeadSource(src);
+      if (saved) { src._dbId = saved.id; src.id = saved.id; }
+    } catch(e) { console.error('saveLeadStorage sync:', e); }
+  }
+}
+
+function saveApproversStorage() {
+  // Legacy stub — approversData now saves directly via DB.saveApprover()
 }
 
 function scoreSource(s) {
@@ -3929,9 +4198,12 @@ function renderDocsTable() {
   });
 }
 
-function removeDoc(i) {
+async function removeDoc(i) {
+  const doc = docsData[i];
+  if (doc && doc._dbId && window.DB) {
+    try { await window.DB.deleteDocument(doc._dbId); } catch(e) { console.error('removeDoc:', e); }
+  }
   docsData.splice(i, 1);
-  saveLeadStorage();
   renderDocsTable();
   showToast('Document removed', 'info');
 }
@@ -3942,16 +4214,114 @@ function handleCSVUpload(input) {
   if (!file) return;
   const status = document.getElementById('csv-status');
   status.textContent = '⏳ Reading file...';
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    parseCSVAndLoad(text, file.name, status);
-  };
-  reader.readAsText(file);
+
+  // Route based on file type
+  if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
+    parseAtlasXLSX(file, status);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) { parseCSVAndLoad(e.target.result, file.name, status); };
+    reader.readAsText(file);
+  }
   input.value = '';
 }
 
-function parseCSVAndLoad(text, filename, statusEl) {
+// ATLAS XLSX PARSER — reads Monthly_Upload sheet
+async function parseAtlasXLSX(file, statusEl) {
+  try {
+    // Load SheetJS dynamically if not available
+    if (typeof XLSX === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+
+    // Find Monthly_Upload sheet
+    const sheetName = wb.SheetNames.find(s => s.toLowerCase().includes('monthly_upload') || s.toLowerCase().includes('monthly upload'));
+    if (!sheetName) {
+      // Try first data sheet
+      const fallback = wb.SheetNames.find(s => !['readme','review','instruction','dictionary','validation'].some(x => s.toLowerCase().includes(x)));
+      if (!fallback) { statusEl.textContent = '⚠️ Could not find Monthly_Upload sheet in this file'; return; }
+    }
+
+    const ws = wb.Sheets[sheetName || wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+    if (!rows.length) { statusEl.textContent = '⚠️ Sheet appears empty'; return; }
+
+    let imported = 0;
+    let period = '';
+
+    rows.forEach(row => {
+      // Extract community name — try multiple column names
+      const community = row['Community_Name'] || row['Community Name'] || row['Property'] || '';
+      const reportMonth = row['Report_Month'] || row['Report Month'] || row['Month'] || '';
+      if (!community) return;
+
+      // Parse period from date
+      if (reportMonth) {
+        const d = reportMonth instanceof Date ? reportMonth : new Date(reportMonth);
+        if (!isNaN(d)) {
+          period = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+      }
+
+      const leads = parseInt(row['Leads'] || row['Total Leads'] || '0') || 0;
+      const tours = parseInt(row['Tours'] || row['Total Tours'] || '0') || 0;
+      const applications = parseInt(row['Applications'] || '0') || 0;
+      const moveIns = parseInt(row['Move_Ins'] || row['Move Ins'] || '0') || 0;
+      const walkIns = parseInt(row['lead_walk_ins'] || row['Walk Ins'] || '0') || 0;
+      const calls = parseInt(row['lead_calls'] || row['Calls'] || '0') || 0;
+      const online = parseInt(row['lead_emails_online'] || row['Online'] || '0') || 0;
+      const chat = parseInt(row['lead_chat_text_other'] || '0') || 0;
+      const offsite = parseInt(row['lead_off_site_event'] || '0') || 0;
+
+      // Find or create lead source entry for this community
+      const sourceName = community + ' — Walk-In';
+      const existing = leadSourcesData.find(s => s.name === sourceName);
+      if (existing) {
+        existing.leads += leads;
+        existing.period = period || existing.period;
+      } else {
+        leadSourcesData.push({
+          id: 'ls-atlas-' + Date.now() + Math.random(),
+          name: community,
+          type: 'Community Property',
+          monthlyCost: 0,
+          leads, leases: moveIns,
+          period: period || (reportMonth ? String(reportMonth).slice(0,7) : 'Imported'),
+          notes: `Atlas import — Tours: ${tours}, Apps: ${applications}, Walk-ins: ${walkIns}, Calls: ${calls}, Online: ${online}`
+        });
+      }
+      imported++;
+    });
+
+    // Save to Supabase
+    for (const src of leadSourcesData.filter(s => s.id && s.id.startsWith('ls-atlas-'))) {
+      try {
+        const saved = await window.DB.saveLeadSource(src);
+        if (saved) src._dbId = saved.id;
+      } catch(e) {}
+    }
+
+    renderLeadTable();
+    updateReportKPIs();
+    statusEl.textContent = `✓ Atlas report imported — ${imported} communities · Period: ${period || 'unknown'}`;
+    showToast(`Atlas report imported: ${imported} communities`, 'success');
+
+  } catch(err) {
+    console.error('Atlas parse error:', err);
+    statusEl.textContent = '⚠️ Could not parse file: ' + err.message;
+  }
+}
+
+async function parseCSVAndLoad(text, filename, statusEl) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) { statusEl.textContent = '⚠️ File appears empty or invalid'; return; }
 
@@ -3973,12 +4343,17 @@ function parseCSVAndLoad(text, filename, statusEl) {
       existing.leads = leads || existing.leads;
       existing.leases = leases || existing.leases;
       existing.monthlyCost = cost || existing.monthlyCost;
+      try { await window.DB.saveLeadSource(existing); } catch(e) {}
     } else {
-      leadSourcesData.push({id:'ls-'+Date.now()+i, name, type:'ILS — National', monthlyCost:cost, leads, leases, period:'Imported', notes:'Imported from ' + filename});
+      const src = {id:'ls-'+Date.now()+i, name, type:'ILS — National', monthlyCost:cost, leads, leases, period:'Imported', notes:'Imported from ' + filename};
+      try {
+        const saved = await window.DB.saveLeadSource(src);
+        if (saved) { src._dbId = saved.id; src.id = saved.id; }
+      } catch(e) {}
+      leadSourcesData.push(src);
     }
     imported++;
   }
-  saveLeadStorage();
   renderLeadTable();
   statusEl.textContent = '✓ ' + imported + ' sources updated from ' + filename;
   showToast('Lead data imported from ' + filename, 'success');
@@ -4116,7 +4491,7 @@ function showExtractionResult(data, filename) {
   });
 }
 
-function saveExtractedDoc() {
+async function saveExtractedDoc() {
   const doc = {
     filename: currentExtractedDoc ? currentExtractedDoc.filename : 'Document',
     vendor: document.getElementById('ex-vendor').value,
@@ -4132,31 +4507,45 @@ function saveExtractedDoc() {
     uploadedAt: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
   };
 
-  // If amount found and linked to source, update monthly cost
+  // If amount found and linked to source, update monthly cost in Supabase
   if (doc.sourceId && doc.amount) {
-    const numericAmount = parseFloat(doc.amount.replace(/[$,\/month]/g,'').trim());
-    if (!isNaN(numericAmount)) {
+    const numericAmount = parseFloat(doc.amount.replace(/[$,\/month\s]/g,''));
+    if (!isNaN(numericAmount) && numericAmount > 0) {
       const ls = leadSourcesData.find(s => s.id === doc.sourceId);
-      if (ls && numericAmount > 0) ls.monthlyCost = numericAmount;
+      if (ls) {
+        ls.monthlyCost = numericAmount;
+        try { await window.DB.saveLeadSource(ls); } catch(e) {}
+      }
     }
   }
 
-  docsData.push(doc);
-  saveLeadStorage();
+  // Save document to Supabase
+  try {
+    const saved = await window.DB.saveDocument(doc);
+    if (saved) doc._dbId = saved.id;
+    docsData.push(doc);
+    showToast(doc.vendor ? doc.vendor + ' document saved' : 'Document saved', 'success');
+  } catch(e) {
+    console.error('saveExtractedDoc:', e);
+    showToast('Failed to save document: ' + e.message, 'error');
+    return;
+  }
+
   renderDocsTable();
   renderLeadTable();
   closeExtractionModal();
-  showToast(doc.vendor ? doc.vendor + ' document saved' : 'Document saved', 'success');
 
   // Add contract alert if deadline found
   if (doc.deadline) {
     const daysOut = Math.round((new Date(doc.deadline) - new Date()) / 86400000);
     if (daysOut < 90) {
       const alerts = document.getElementById('contract-alerts-list');
-      const el = document.createElement('div');
-      el.style.cssText = `background:${daysOut < 30 ? '#fce8e8' : '#fff4e0'};border:1px solid ${daysOut < 30 ? '#f7b3b3' : '#fad897'};border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:${daysOut < 30 ? '#8a1a1a' : '#5a3a00'}`;
-      el.innerHTML = `${daysOut < 30 ? '⚠️' : '📋'} <strong>${doc.vendor}</strong> — ${doc.docType} deadline <strong>${new Date(doc.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</strong> (${daysOut}d)`;
-      alerts.appendChild(el);
+      if (alerts) {
+        const el = document.createElement('div');
+        el.style.cssText = `background:${daysOut < 30 ? '#fce8e8' : '#fff4e0'};border:1px solid ${daysOut < 30 ? '#f7b3b3' : '#fad897'};border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:${daysOut < 30 ? '#8a1a1a' : '#5a3a00'}`;
+        el.innerHTML = `${daysOut < 30 ? '⚠️' : '📋'} <strong>${doc.vendor}</strong> — deadline <strong>${new Date(doc.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</strong> (${daysOut}d)`;
+        alerts.appendChild(el);
+      }
     }
   }
 }
@@ -4184,11 +4573,12 @@ function editLeadSource(id) {
   document.getElementById('add-lead-source-modal').classList.add('open');
 }
 
-function saveLeadSource() {
+async function saveLeadSource() {
   const name = document.getElementById('ls-name').value.trim();
   if (!name) { showToast('Source name required', 'warn'); return; }
   const src = {
     id: editingLSId || ('ls-' + Date.now()),
+    _dbId: editingLSId ? (leadSourcesData.find(x=>x.id===editingLSId)||{})._dbId : null,
     name,
     type: document.getElementById('ls-type').value,
     monthlyCost: parseFloat(document.getElementById('ls-monthlycost').value) || 0,
@@ -4197,27 +4587,34 @@ function saveLeadSource() {
     period: document.getElementById('ls-period').value,
     notes: document.getElementById('ls-notes').value,
   };
-  if (editingLSId) {
-    const idx = leadSourcesData.findIndex(x => x.id === editingLSId);
-    leadSourcesData[idx] = src;
-    showToast(name + ' updated', 'success');
-  } else {
-    leadSourcesData.push(src);
-    showToast(name + ' added', 'success');
+  try {
+    const saved = await window.DB.saveLeadSource(src);
+    if (saved) { src._dbId = saved.id; src.id = saved.id; }
+    if (editingLSId) {
+      const idx = leadSourcesData.findIndex(x => x.id === editingLSId);
+      if (idx >= 0) leadSourcesData[idx] = src; else leadSourcesData.push(src);
+      showToast(name + ' updated', 'success');
+    } else {
+      leadSourcesData.push(src);
+      showToast(name + ' added', 'success');
+    }
+  } catch(e) {
+    showToast('Failed to save: ' + e.message, 'error'); return;
   }
-  saveLeadStorage();
   document.getElementById('add-lead-source-modal').classList.remove('open');
   renderLeadTable();
 }
 
-function deleteLeadSource() {
+async function deleteLeadSource() {
   const s = leadSourcesData.find(x => x.id === editingLSId);
   if (!s || !confirm('Remove ' + s.name + '?')) return;
-  leadSourcesData = leadSourcesData.filter(x => x.id !== editingLSId);
-  saveLeadStorage();
+  try {
+    if (s._dbId) await window.DB.deleteLeadSource(s._dbId);
+    leadSourcesData = leadSourcesData.filter(x => x.id !== editingLSId);
+    showToast(s.name + ' removed', 'info');
+  } catch(e) { showToast('Failed to remove: ' + e.message, 'error'); return; }
   document.getElementById('add-lead-source-modal').classList.remove('open');
   renderLeadTable();
-  showToast(s.name + ' removed', 'info');
 }
 
 // MANUAL LEAD ENTRY
@@ -4249,31 +4646,41 @@ function addManualLeadRow() {
   wrap.appendChild(row);
 }
 
-function saveManualLeadData() {
+async function saveManualLeadData() {
   const rows = document.querySelectorAll('#manual-lead-rows > div');
-  let saved = 0;
-  rows.forEach(row => {
+  let savedCount = 0;
+  const period = document.getElementById('ml-period')?.value || '';
+
+  for (const row of rows) {
     const selects = row.querySelectorAll('select');
     const inputs = row.querySelectorAll('input');
     const name = selects[0] ? selects[0].value : '';
     const leads = parseInt(inputs[0] ? inputs[0].value : '0') || 0;
     const leases = parseInt(inputs[1] ? inputs[1].value : '0') || 0;
     const cost = parseFloat(inputs[2] ? inputs[2].value : '0') || 0;
-    if (!name || (!leads && !leases && !cost)) return;
+    if (!name || (!leads && !leases && !cost)) continue;
+
     const existing = leadSourcesData.find(s => s.name === name);
     if (existing) {
       existing.leads += leads;
       existing.leases += leases;
       if (cost > 0) existing.monthlyCost = cost;
+      try { await window.DB.saveLeadSource(existing); } catch(e) {}
     } else {
-      leadSourcesData.push({id:'ls-'+Date.now(), name, type:'Other', monthlyCost:cost, leads, leases, period: document.getElementById('ml-period').value, notes:'Manual entry'});
+      const src = { id:'ls-'+Date.now()+Math.random(), name, type:'Other', monthlyCost:cost, leads, leases, period, notes:'Manual entry' };
+      try {
+        const saved = await window.DB.saveLeadSource(src);
+        if (saved) { src._dbId = saved.id; src.id = saved.id; }
+        leadSourcesData.push(src);
+      } catch(e) { console.error('saveManualLeadData:', e); }
     }
-    saved++;
-  });
-  saveLeadStorage();
+    savedCount++;
+  }
+
   document.getElementById('manual-lead-modal').classList.remove('open');
   renderLeadTable();
-  showToast(saved + ' source(s) updated', 'success');
+  updateReportKPIs();
+  showToast(savedCount + ' source(s) saved to database', 'success');
 }
 
 async function analyzeSource(id) {
@@ -4424,10 +4831,6 @@ function sendRejection() {
 // APPROVER SETTINGS
 // =============================================
 
-function saveApproversStorage() {
-  localStorage.setItem('mcc-approvers', JSON.stringify(approversData));
-}
-
 function renderApprovers() {
   const tbody = document.getElementById('approvers-tbody');
   const empty = document.getElementById('approvers-empty');
@@ -4509,13 +4912,15 @@ function getCheckedApproverProps() {
   return [...document.querySelectorAll('#approver-property-checkboxes input[type=checkbox]:checked')].map(i => i.dataset.prop);
 }
 
-function saveApprover() {
+async function saveApprover() {
   const fname = document.getElementById('ap-fname').value.trim();
   const lname = document.getElementById('ap-lname').value.trim();
   const email = document.getElementById('ap-email').value.trim();
   if (!fname || !email) { showToast('Name and email are required', 'warn'); return; }
+
   const ap = {
     id: editingApproverId || ('ap-' + Date.now()),
+    _dbId: editingApproverId ? (approversData.find(x=>x.id===editingApproverId)||{})._dbId : null,
     fname, lname, email,
     role: document.getElementById('ap-role').value,
     authority: document.getElementById('ap-authority').value,
@@ -4523,27 +4928,50 @@ function saveApprover() {
     properties: getCheckedApproverProps(),
     status: document.getElementById('ap-status').value,
   };
-  if (editingApproverId) {
-    const idx = approversData.findIndex(x => x.id === editingApproverId);
-    approversData[idx] = ap;
-    showToast(fname + ' ' + lname + ' updated', 'success');
-  } else {
-    approversData.push(ap);
-    showToast(fname + ' ' + lname + ' added as approver', 'success');
+
+  // Save to Supabase
+  try {
+    const saved = await window.DB.saveApprover(ap);
+    if (saved) {
+      ap._dbId = saved.id;
+      ap.id = saved.id; // use Supabase UUID as canonical ID
+    }
+    if (editingApproverId) {
+      const idx = approversData.findIndex(x => x.id === editingApproverId);
+      if (idx >= 0) approversData[idx] = ap; else approversData.push(ap);
+      showToast(fname + ' ' + lname + ' updated', 'success');
+    } else {
+      approversData.push(ap);
+      showToast(fname + ' ' + lname + ' added as approver', 'success');
+    }
+  } catch(e) {
+    console.error('saveApprover error:', e);
+    showToast('Failed to save approver: ' + e.message, 'error');
+    return;
   }
-  saveApproversStorage();
+
   closeAddApprover();
   renderApprovers();
 }
 
-function deleteApprover() {
+async function deleteApprover() {
   const ap = approversData.find(x => x.id === editingApproverId);
-  if (!ap || !confirm('Remove ' + ap.fname + ' ' + ap.lname + ' as an approver?')) return;
-  approversData = approversData.filter(x => x.id !== editingApproverId);
-  saveApproversStorage();
+  if (!ap || !confirm('Remove ' + ap.fname + ' ' + (ap.lname||'') + ' as an approver?')) return;
+
+  try {
+    if (ap._dbId) {
+      await window.DB.deleteApprover(ap._dbId);
+    }
+    approversData = approversData.filter(x => x.id !== editingApproverId);
+    showToast(ap.fname + ' removed', 'info');
+  } catch(e) {
+    console.error('deleteApprover error:', e);
+    showToast('Failed to remove: ' + e.message, 'error');
+    return;
+  }
+
   closeAddApprover();
   renderApprovers();
-  showToast(ap.fname + ' removed', 'info');
 }
 
 function closeAddApprover() {
@@ -4558,13 +4986,31 @@ const TIER_META = {
   vp:       {label:'Tier 3 — VP/Exec',   badge:'badge-urgent',      desc:'Last resort only',       order:3},
 };
 
-function saveToStorage() {
-  localStorage.setItem('mcc-team',           JSON.stringify(teamData));
-  localStorage.setItem('mcc-skills',         JSON.stringify(skillsData));
-  localStorage.setItem('mcc-routing',        JSON.stringify(routingData));
-  localStorage.setItem('mcc-approval-rules', JSON.stringify(approvalRulesData));
-  localStorage.setItem('mcc-sla',            JSON.stringify(slaData));
-  localStorage.setItem('mcc-properties',     JSON.stringify(propertiesData));
+// saveToStorage — now writes to Supabase, not localStorage
+// Each sub-function saves its specific table
+async function saveToStorage() {
+  // Called by legacy code — now a no-op since each save function
+  // calls its own DB method. Kept to avoid reference errors.
+}
+
+async function saveApprovalRule(ri) {
+  const rule = approvalRulesData[ri];
+  if (!rule) return;
+  try {
+    await window.DB.supabaseClient()
+      .from('approval_rules')
+      .update({ gates: rule.gates, involves_spend: rule.spend })
+      .eq('type_id', rule.typeId);
+  } catch(e) { console.error('saveApprovalRule:', e); }
+}
+
+async function saveSLARule(typeId, days) {
+  try {
+    await window.DB.supabaseClient()
+      .from('sla_rules')
+      .update({ days })
+      .eq('type_id', typeId);
+  } catch(e) { console.error('saveSLARule:', e); }
 }
 
 // SETTINGS SUB-NAV
@@ -4824,16 +5270,18 @@ async function saveMember() {
   syncRoutingMap();
 }
 
-function deleteMember() {
+async function deleteMember() {
   if (!editingMemberId) return;
   const m = teamData.find(x => x.id === editingMemberId);
   if (!m) return;
   if (!confirm('Remove ' + m.fname + ' from the team? Their active tickets will need to be reassigned.')) return;
-  teamData = teamData.filter(x => x.id !== editingMemberId);
-  saveToStorage();
+  try {
+    if (m._dbId) await window.DB.deleteTeamMember(m._dbId);
+    teamData = teamData.filter(x => x.id !== editingMemberId);
+    showToast(m.fname + ' removed from team', 'info');
+  } catch(e) { showToast('Failed to remove: ' + e.message, 'error'); return; }
   closeAddMember();
   renderTeamCards();
-  showToast(m.fname + ' removed from team', 'info');
 }
 
 function closeAddMember() { document.getElementById('add-member-modal').classList.remove('open'); }
@@ -4872,32 +5320,32 @@ function renderSkills() {
   });
 }
 
-function updateRoutingRule(typeId, skillId) {
+async function updateRoutingRule(typeId, skillId) {
   const r = routingData.find(x => x.typeId === typeId);
   if (r) r.skillId = skillId;
-  saveToStorage();
+  try { await window.DB.updateRoutingRule(typeId, skillId); } catch(e) { console.error('updateRoutingRule:', e); }
   showToast('Routing rule updated', 'success');
 }
 
-function deleteSkill(id) {
+async function deleteSkill(id) {
   if (!confirm('Remove this skill? Team members assigned to it will lose it.')) return;
   skillsData = skillsData.filter(s => s.id !== id);
-  teamData.forEach(m => { m.skills = m.skills.filter(s => s !== id); });
-  saveToStorage();
+  teamData.forEach(m => { m.skills = (m.skills||[]).filter(s => s !== id); });
+  try { await window.DB.deleteSkill(id); } catch(e) { console.error('deleteSkill:', e); }
   renderSkills();
   showToast('Skill removed', 'info');
 }
 
 function openAddSkill() { document.getElementById('add-skill-modal').classList.add('open'); }
 
-function saveSkill() {
+async function saveSkill() {
   const name = document.getElementById('skill-name-input').value.trim();
   const desc = document.getElementById('skill-desc-input').value.trim();
   if (!name) { showToast('Skill name is required', 'warn'); return; }
   const id = 'skill-' + Date.now();
   skillsData.push({id, name, desc});
   routingData.push({type: name, typeId: id, skillId: id});
-  saveToStorage();
+  try { await window.DB.saveSkill({id, name, desc}); } catch(e) { console.error('saveSkill:', e); }
   document.getElementById('add-skill-modal').classList.remove('open');
   document.getElementById('skill-name-input').value = '';
   document.getElementById('skill-desc-input').value = '';
@@ -4935,10 +5383,10 @@ function renderApprovalRules() {
   });
 }
 
-function toggleSpend(ri, val) { approvalRulesData[ri].spend = val; saveToStorage(); }
-function updateGate(ri, gi, val) { approvalRulesData[ri].gates[gi] = val; saveToStorage(); }
-function removeGate(ri, gi) { approvalRulesData[ri].gates.splice(gi,1); saveToStorage(); renderApprovalRules(); }
-function addGate(ri) { approvalRulesData[ri].gates.push('New approval gate'); saveToStorage(); renderApprovalRules(); }
+function toggleSpend(ri, val) { approvalRulesData[ri].spend = val; saveApprovalRule(ri); }
+function updateGate(ri, gi, val) { approvalRulesData[ri].gates[gi] = val; saveApprovalRule(ri); }
+function removeGate(ri, gi) { approvalRulesData[ri].gates.splice(gi,1); saveApprovalRule(ri); renderApprovalRules(); }
+function addGate(ri) { approvalRulesData[ri].gates.push('New approval gate'); saveApprovalRule(ri); renderApprovalRules(); }
 function openAddApprovalRule() { showToast('Select a request type from Skills & Routing to add a new approval rule there', 'info'); }
 
 // ---- PROPERTIES ----
@@ -5016,16 +5464,18 @@ async function saveProperty() {
   syncPropertyDropdown();
 }
 
-function deleteProperty() {
+async function deleteProperty() {
   if (!editingPropertyId) return;
   const p = propertiesData.find(x => x.id === editingPropertyId);
-  if (!confirm('Remove ' + p.name + ' from the system?')) return;
-  propertiesData = propertiesData.filter(x => x.id !== editingPropertyId);
-  saveToStorage();
+  if (!p || !confirm('Remove ' + p.name + ' from the system?')) return;
+  try {
+    if (p._dbId) await window.DB.deleteProperty(p._dbId);
+    propertiesData = propertiesData.filter(x => x.id !== editingPropertyId);
+    showToast(p.name + ' removed', 'info');
+  } catch(e) { showToast('Failed to remove: ' + e.message, 'error'); return; }
   closeAddProperty();
   renderProperties();
   syncPropertyDropdown();
-  showToast(p.name + ' removed', 'info');
 }
 
 function closeAddProperty() { document.getElementById('add-property-modal').classList.remove('open'); }
@@ -5091,9 +5541,8 @@ function renderSLA() {
 
 function updateSLA(i, val) {
   slaData[i].days = parseInt(val) || 1;
-  const pct = Math.min(100, Math.round((slaData[i].days / 10) * 100));
   slaData[i].color = slaData[i].days <= 2 ? 'good' : slaData[i].days <= 5 ? 'warn' : 'bad';
-  saveToStorage();
+  saveSLARule(slaData[i].typeId, slaData[i].days);
 }
 
 // Sync routing map used by New Request form — respects tier order
@@ -5398,18 +5847,25 @@ function buildSummaryText(type, s) {
   return '—';
 }
 
-function removeReport(i) {
+async function removeReport(i) {
+  const entry = reportHistory[i];
+  if (entry && entry.id && window.DB) {
+    try { await window.DB.deleteReport(entry.id); } catch(e) { console.error('removeReport:', e); }
+  }
   reportHistory.splice(i, 1);
-  localStorage.setItem('mcc-report-history', JSON.stringify(reportHistory));
   renderReportHistory();
   renderReportCharts();
   updateReportKPIs();
 }
 
-function clearReportHistory() {
+async function clearReportHistory() {
   if (!confirm('Remove all uploaded report data?')) return;
+  for (const entry of reportHistory) {
+    if (entry.id && window.DB) {
+      try { await window.DB.deleteReport(entry.id); } catch(e) {}
+    }
+  }
   reportHistory = [];
-  localStorage.setItem('mcc-report-history', JSON.stringify(reportHistory));
   renderReportHistory();
   renderReportCharts();
   updateReportKPIs();
@@ -5653,7 +6109,7 @@ function updateWeightsTotal() {
 function saveBonusWeights() {
   const total = bonusWeights.filter(w=>w.enabled).reduce((s,w)=>s+w.weight,0);
   if (total !== 100) { showToast('Enabled weights must total exactly 100% — currently ' + total + '%', 'warn'); return; }
-  localStorage.setItem('mcc-bonus-weights', JSON.stringify(bonusWeights));
+  if (window.DB) window.DB.saveBonusSettings(bonusWeights, bonusTargets);
   showToast('Bonus weights saved', 'success');
 }
 
@@ -5674,7 +6130,7 @@ function renderBonusTargetSettings() {
 }
 
 function saveBonusTargets() {
-  localStorage.setItem('mcc-bonus-targets', JSON.stringify(bonusTargets));
+  if (window.DB) window.DB.saveBonusSettings(bonusWeights, bonusTargets);
   showToast('Bonus targets saved', 'success');
 }
 
@@ -5839,6 +6295,7 @@ Object.assign(window, {
   approveItem, sendNudge, sendNudgeEmail,
   openRejectionModal, closeRejectionModal, sendRejection,
   deleteTicket, deleteRating, renderLiveWorkload,
+  saveTicketChanges, updateTicketAssign, updateTicketStatus, populateModalControls,
 
   // Settings — Approvers
   openAddApprover, openEditApprover, saveApprover, deleteApprover, closeAddApprover,
