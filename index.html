@@ -1063,7 +1063,7 @@
       <table class="ticket-table" id="full-ticket-table">
         <thead>
           <tr>
-            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th><th id="ticket-delete-col" style="display:none"></th>
+            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th><th>⏱ Timer</th><th id="ticket-delete-col" style="display:none"></th>
           </tr>
         </thead>
         <tbody id="ticket-tbody">
@@ -1449,19 +1449,90 @@
     </div>
   </div>
 
-  <!-- ======== METRICS ======== -->
+  <!-- ======== TEAM METRICS ======== -->
   <div class="page" id="page-metrics">
     <div class="section-header">
       <div>
-        <div class="section-title">Team Efficiency Metrics</div>
-        <div class="section-sub">Last 30 days · Marketing team time only · Approval wait time excluded</div>
+        <div class="section-title">Team Performance</div>
+        <div class="section-sub" id="metrics-sub">Last 30 days · Marketing time only · Approval wait excluded</div>
       </div>
-      <select style="width:auto;font-size:12px;padding:6px 10px">
-        <option>Last 30 days</option>
-        <option>Last 90 days</option>
-        <option>YTD 2026</option>
+      <select id="metrics-period" style="width:auto;font-size:12px;padding:6px 10px" onchange="renderTeamMetrics()">
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="365">YTD 2026</option>
       </select>
     </div>
+
+    <!-- PORTFOLIO KPIs — live from Supabase -->
+    <div class="stat-grid" style="grid-template-columns:repeat(5,1fr)" id="metrics-kpi-strip">
+      <div class="stat-card"><div class="stat-label">Tickets Closed</div><div class="stat-value" id="m-closed">—</div><div class="stat-sub">Selected period</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Team Time</div><div class="stat-value" id="m-avg-time">—</div><div class="stat-sub">Marketing-controlled only</div></div>
+      <div class="stat-card"><div class="stat-label">On-Time Rate</div><div class="stat-value stat-up" id="m-ontime">—</div><div class="stat-sub">vs SLA targets</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-value" id="m-avg-rating">—</div><div class="stat-sub">From survey responses</div></div>
+      <div class="stat-card"><div class="stat-label">Open Tickets</div><div class="stat-value" id="m-open">—</div><div class="stat-sub">Across all staff</div></div>
+    </div>
+
+    <!-- STAFF RANKING — live, clickable -->
+    <div class="grid-2">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Staff Rankings</div>
+          <span style="font-size:11px;color:#7a9aaa">Click a name to view their dashboard →</span>
+        </div>
+        <div id="staff-ranking-list">
+          <div style="text-align:center;padding:20px;color:#7a9aaa;font-size:13px">Loading rankings...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Efficiency by Request Type</div>
+        <div id="metrics-by-type">
+          <div style="text-align:center;padding:20px;color:#7a9aaa;font-size:13px">Loading...</div>
+        </div>
+        <hr class="divider" style="margin:12px 0">
+        <div class="card-title" style="margin-bottom:10px">Approval Bottleneck</div>
+        <div id="metrics-approval-bottleneck">
+          <div style="text-align:center;padding:10px;color:#7a9aaa;font-size:12px">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== STAFF MEMBER DASHBOARD (sub-page) ======== -->
+  <div class="page" id="page-staff-dashboard" style="display:none">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-secondary btn-sm" onclick="showTab('metrics')">← Back</button>
+        <div>
+          <div class="section-title" id="staff-dash-name">—</div>
+          <div class="section-sub" id="staff-dash-role">—</div>
+        </div>
+      </div>
+      <div id="staff-dash-avatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:white">—</div>
+    </div>
+
+    <!-- SNAPSHOT KPIs -->
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-label">Open Tickets</div><div class="stat-value" id="sd-open">—</div><div class="stat-sub" id="sd-open-sub">Active now</div></div>
+      <div class="stat-card"><div class="stat-label">Closed (30d)</div><div class="stat-value" id="sd-closed">—</div><div class="stat-sub">Completed tickets</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-value" id="sd-rating">—</div><div class="stat-sub" id="sd-rating-sub">From satisfaction surveys</div></div>
+      <div class="stat-card"><div class="stat-label">Team Rank</div><div class="stat-value" id="sd-rank">—</div><div class="stat-sub" id="sd-rank-sub">vs peers</div></div>
+    </div>
+
+    <!-- TICKET LIST -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">Tickets</div>
+        <input type="search" id="staff-ticket-search" placeholder="Search tickets..." style="width:200px;font-size:12px" oninput="filterStaffTickets(this.value)">
+      </div>
+      <table class="ticket-table">
+        <thead><tr><th>ID</th><th>Request</th><th>Property</th><th>Status</th><th>Due</th><th>Timer</th></tr></thead>
+        <tbody id="staff-ticket-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:#7a9aaa">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
     <div class="stat-grid" style="grid-template-columns:repeat(5,1fr)">
       <div class="stat-card">
@@ -1536,80 +1607,6 @@
                 <span style="font-size:13px;font-weight:600;color:var(--rise-dark)">Jordan</span>
                 <span style="font-size:12px;color:#7a9aaa">3 closed · 3.8d avg</span>
               </div>
-              <div class="metric-bar-bg"><div class="metric-bar-fill warn" style="width:55%"></div></div>
-            </div>
-            <span class="badge badge-inprogress">Watch</span>
-          </div>
-        </div>
-
-        <hr class="divider">
-        <div class="card-title" style="margin-bottom:12px">Approval Bottleneck Tracker</div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">GM response time</span><span style="font-weight:600;color:var(--rise-dark)">2.8 days avg</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill warn" style="width:60%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Regional response time</span><span style="font-weight:600;color:var(--rise-dark)">5.3 days avg</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill bad" style="width:82%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Submitter response time</span><span style="font-weight:600;color:var(--rise-dark)">1.4 days avg</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:30%"></div></div>
-        </div>
-        <div class="form-hint">Regional response is the primary delay driver — none of this time counts against the marketing team.</div>
-      </div>
-
-      <!-- BY TYPE -->
-      <div class="card">
-        <div class="card-title">Efficiency by Request Type</div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Social Media</span><span style="font-weight:600;color:var(--rise-dark)">2.1d avg · 8 tickets</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:95%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Print / Flyers</span><span style="font-weight:600;color:var(--rise-dark)">3.4d avg · 5 tickets</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:75%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Paid Ads</span><span style="font-weight:600;color:var(--rise-dark)">3.8d avg · 4 tickets</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill warn" style="width:65%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Promo Swag</span><span style="font-weight:600;color:var(--rise-dark)">4.2d avg · 3 tickets</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill warn" style="width:55%"></div></div>
-        </div>
-        <div class="metric-bar-wrap">
-          <div class="metric-bar-top"><span style="color:#5a7a86">Website Updates</span><span style="font-weight:600;color:var(--rise-dark)">2.6d avg · 3 tickets</span></div>
-          <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:88%"></div></div>
-        </div>
-
-        <hr class="divider">
-        <div class="card-title" style="margin-bottom:12px">Budget Accountability</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse">
-          <tr style="border-bottom:var(--border)">
-            <td style="padding:8px 0;color:#5a7a86">Total spend tracked (MTD)</td>
-            <td style="text-align:right;font-weight:600;color:var(--rise-dark)">$42,180</td>
-          </tr>
-          <tr style="border-bottom:var(--border)">
-            <td style="padding:8px 0;color:#5a7a86">Approved by GM</td>
-            <td style="text-align:right;font-weight:600;color:#2a9d6e">$38,940</td>
-          </tr>
-          <tr style="border-bottom:var(--border)">
-            <td style="padding:8px 0;color:#5a7a86">Pending Regional</td>
-            <td style="text-align:right;font-weight:600;color:#d47b1a">$3,240</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#5a7a86">Requests without approval</td>
-            <td style="text-align:right;font-weight:600;color:#e85c4a">$0</td>
-          </tr>
-        </table>
-        <div style="margin-top:10px;padding:10px;background:#e6f7ee;border-radius:var(--radius-sm);font-size:12px;color:#1a6b3e">
-          ✓ Zero unapproved spend this period — all purchases in workflow
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ======== REPORTING ======== -->
   <div class="page" id="page-reporting">
     <div class="section-header">
@@ -2209,13 +2206,22 @@
             <option value="in_progress">In Progress</option>
             <option value="in_review">In Review</option>
             <option value="awaiting_approval">Awaiting Approval</option>
+            <option value="awaiting_submitter">Awaiting Submitter Review</option>
             <option value="complete">Complete</option>
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
-        <div style="display:flex;align-items:flex-end">
+        <div style="display:flex;align-items:flex-end;gap:6px">
           <button class="btn btn-primary btn-sm" onclick="saveTicketChanges()">Save Changes</button>
+          <button class="btn btn-secondary btn-sm" onclick="openBulkReassignModal()">Bulk Reassign</button>
         </div>
+      </div>
+
+      <!-- REQUEST REASSIGNMENT (all users) -->
+      <div style="margin-bottom:12px">
+        <button class="btn btn-secondary btn-sm" onclick="openReassignRequestModal()" style="color:#d47b1a;border-color:#fad897">
+          🔀 Request Reassignment
+        </button>
       </div>
 
       <!-- APPROVAL STEPS — rendered dynamically -->
@@ -2858,12 +2864,13 @@ async function renderLiveTickets() {
     ['vp','director','admin'].includes(currentUserProfile.role_type);
 
   const statusMap = {
-    new: '<span class="badge badge-new">🆕 New</span>',
-    in_progress: '<span class="badge badge-inprogress">🔄 In Progress</span>',
-    in_review: '<span class="badge badge-review">👁 In Review</span>',
+    new:               '<span class="badge badge-new">🆕 New</span>',
+    in_progress:       '<span class="badge badge-inprogress">🔄 In Progress</span>',
+    in_review:         '<span class="badge badge-review">👁 In Review</span>',
     awaiting_approval: '<span class="badge badge-approval">⏳ Awaiting Approval</span>',
-    complete: '<span class="badge badge-complete">✓ Complete</span>',
-    cancelled: '<span class="badge badge-urgent">✕ Cancelled</span>',
+    awaiting_submitter:'<span class="badge badge-urgent" style="background:#fff4e0;color:#7a4400;border:1px solid #fad897">↩ Awaiting Submitter</span>',
+    complete:          '<span class="badge badge-complete">✓ Complete</span>',
+    cancelled:         '<span class="badge badge-urgent">✕ Cancelled</span>',
   };
 
   // Show/hide delete column header
@@ -2878,7 +2885,7 @@ async function renderLiveTickets() {
     if (!el) return;
     const rows = idx === 1 ? activeTickets.slice(0,8) : tickets;
     if (rows.length === 0) {
-      el.innerHTML = `<tr><td colspan="${isPrivileged ? 10 : 9}" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>`;
+      el.innerHTML = `<tr><td colspan="${isPrivileged ? 11 : 10}" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>`;
       return;
     }
     el.innerHTML = rows.map(t => {
@@ -2890,6 +2897,14 @@ async function renderLiveTickets() {
       const deleteBtn = isPrivileged
         ? `<td><button class="btn btn-reject btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();deleteTicket('${t.id}','${t.ticket_number||t.id}')">Delete</button></td>`
         : '';
+      // Timer status
+      const stalled = ['awaiting_approval','awaiting_submitter'].includes(t.status);
+      const overdue  = t.due_date && new Date(t.due_date) < new Date() && !['complete','cancelled'].includes(t.status);
+      const timerLabel = t.status === 'complete' ? '<span style="color:#7a9aaa">Closed</span>'
+        : stalled ? '<span style="color:#d47b1a;font-weight:600">⏸ Stalled</span>'
+        : overdue ? '<span style="color:#e85c4a;font-weight:600">🔴 Overdue</span>'
+        : '<span style="color:#2a9d6e;font-weight:600">▶ Active</span>';
+
       return `<tr onclick="openTicket('${t.ticket_number || t.id}', '${t.id}')">
         <td><span class="ticket-id">${t.ticket_number || '—'}</span></td>
         <td><span class="ticket-title">${t.title}</span></td>
@@ -2900,6 +2915,7 @@ async function renderLiveTickets() {
         <td style="color:#7a9aaa;font-size:12px">${t.created_at ? new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
         <td style="${dueStyle}">${due}</td>
         <td style="font-size:12px">${cost}</td>
+        <td style="font-size:11px">${timerLabel}</td>
         ${deleteBtn}
       </tr>`;
     }).join('');
@@ -3832,6 +3848,342 @@ async function saveTicketChanges() {
 }
 function updateTicketAssign() {}
 function updateTicketStatus() {}
+
+// =============================================
+// TEAM METRICS — live from Supabase
+// =============================================
+async function renderTeamMetrics() {
+  const days = parseInt(document.getElementById('metrics-period')?.value || '30');
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+
+  const tickets = await window.DB.loadTickets();
+  const closed = tickets.filter(t => t.status === 'complete' && t.closed_at >= since);
+  const open   = tickets.filter(t => !['complete','cancelled'].includes(t.status));
+  const stalled = tickets.filter(t => ['awaiting_approval','awaiting_submitter'].includes(t.status));
+
+  // KPI strip
+  document.getElementById('m-closed').textContent = closed.length || '0';
+  document.getElementById('m-open').textContent   = open.length || '0';
+
+  // Average marketing time (excluding stall periods)
+  const timedTickets = closed.filter(t => t.marketing_time_seconds > 0);
+  if (timedTickets.length > 0) {
+    const avgSecs = timedTickets.reduce((s,t) => s + t.marketing_time_seconds, 0) / timedTickets.length;
+    document.getElementById('m-avg-time').textContent = (avgSecs / 86400).toFixed(1) + 'd';
+  } else {
+    document.getElementById('m-avg-time').textContent = '—';
+  }
+
+  // On-time rate
+  const dueAndClosed = closed.filter(t => t.due_date);
+  const onTime = dueAndClosed.filter(t => t.closed_at <= t.due_date + 'T23:59:59');
+  document.getElementById('m-ontime').textContent = dueAndClosed.length > 0
+    ? Math.round((onTime.length / dueAndClosed.length) * 100) + '%' : '—';
+
+  // Average rating from satisfaction_ratings
+  const ratingsAll = satisfactionRatings;
+  if (ratingsAll.length > 0) {
+    const avg = ratingsAll.reduce((s,r) => s + ((r.quality + r.timeliness) / 2), 0) / ratingsAll.length;
+    document.getElementById('m-avg-rating').textContent = avg.toFixed(1) + ' ★';
+  } else {
+    document.getElementById('m-avg-rating').textContent = '—';
+  }
+
+  // Staff rankings
+  await renderStaffRankings(tickets, closed, ratingsAll);
+
+  // By type
+  renderMetricsByType(closed);
+}
+
+// =============================================
+// STAFF RANKINGS
+// =============================================
+async function renderStaffRankings(allTickets, closedTickets, ratings) {
+  const el = document.getElementById('staff-ranking-list');
+  if (!el) return;
+
+  const staff = teamData.filter(m => m.status === 'active' && m.roleType !== 'vp');
+  if (!staff.length) {
+    el.innerHTML = '<div style="color:#7a9aaa;font-size:13px">No team members configured yet.</div>';
+    return;
+  }
+
+  // Compute scores for each staff member
+  const scored = staff.map(m => {
+    const dbId = m._dbId || m.id;
+    const myTickets = allTickets.filter(t => t.assigned_to === dbId);
+    const myClosed  = closedTickets.filter(t => t.assigned_to === dbId);
+    const myOpen    = myTickets.filter(t => !['complete','cancelled'].includes(t.status));
+    const myRatings = ratings.filter(r => r.assigneeName === m.fname || r.assigneeId === dbId);
+
+    const closureScore  = Math.min(100, myClosed.length * 10); // 10pts per ticket, max 100
+    const avgRating     = myRatings.length > 0
+      ? myRatings.reduce((s,r) => s + ((r.quality + r.timeliness) / 2), 0) / myRatings.length : null;
+    const ratingScore   = avgRating !== null ? (avgRating / 5) * 100 : 50; // 50 if no data
+    const loadScore     = myOpen.length <= m.maxTickets ? 100 : Math.max(0, 100 - ((myOpen.length - m.maxTickets) * 20));
+
+    // Weighted composite: closures 40%, ratings 40%, load 20%
+    const composite = (closureScore * 0.40) + (ratingScore * 0.40) + (loadScore * 0.20);
+
+    return { m, dbId, myOpen, myClosed, avgRating, composite };
+  });
+
+  // Sort by composite descending
+  scored.sort((a,b) => b.composite - a.composite);
+
+  el.innerHTML = scored.map((s, i) => {
+    const { m, myOpen, myClosed, avgRating, composite } = s;
+    const ini = ((m.fname||'')[0] + (m.lname||'?')[0]).toUpperCase();
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+    const rating = avgRating !== null ? avgRating.toFixed(1) + ' ★' : '—';
+    const pct = Math.round(composite);
+    const barColor = pct >= 80 ? '#2a9d6e' : pct >= 60 ? '#d47b1a' : '#e85c4a';
+
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:var(--border);cursor:pointer"
+           onclick="openStaffDashboard('${m._dbId||m.id}','${m.fname}','${(m.lname||'')}','${(m.role||'')}','${(m.color||'#013e51')}')"
+           onmouseenter="this.style.background='var(--rise-pale)'" onmouseleave="this.style.background=''">
+        <div style="font-size:18px;width:28px;text-align:center">${medal}</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:${m.color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:var(--rise-dark);font-size:13px;text-decoration:underline;text-decoration-color:var(--rise-light)">${m.fname} ${m.lname||''}</div>
+          <div style="font-size:11px;color:#7a9aaa">${myOpen.length} open · ${myClosed.length} closed · ${rating}</div>
+          <div style="height:4px;background:var(--rise-pale);border-radius:2px;margin-top:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px"></div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:${barColor};flex-shrink:0">${pct}%</div>
+      </div>`;
+  }).join('');
+}
+
+// =============================================
+// STAFF MEMBER DASHBOARD
+// =============================================
+async function openStaffDashboard(dbId, fname, lname, role, color) {
+  // Show sub-page
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('page-staff-dashboard').style.display = 'block';
+
+  // Set header
+  document.getElementById('staff-dash-name').textContent = fname + ' ' + (lname||'');
+  document.getElementById('staff-dash-role').textContent  = role || 'Team Member';
+  const av = document.getElementById('staff-dash-avatar');
+  av.textContent = (fname[0] + (lname?.[0]||'?')).toUpperCase();
+  av.style.background = color || 'var(--rise-dark)';
+
+  // Load tickets
+  const allTickets = await window.DB.loadTickets();
+  const mine = allTickets.filter(t => t.assigned_to === dbId);
+  const open   = mine.filter(t => !['complete','cancelled'].includes(t.status));
+  const closed = mine.filter(t => t.status === 'complete');
+
+  document.getElementById('sd-open').textContent   = open.length;
+  document.getElementById('sd-closed').textContent = closed.length;
+
+  // Ratings
+  const myRatings = satisfactionRatings.filter(r => r.assigneeName === fname);
+  if (myRatings.length > 0) {
+    const avg = myRatings.reduce((s,r) => s + ((r.quality + r.timeliness) / 2), 0) / myRatings.length;
+    document.getElementById('sd-rating').textContent     = avg.toFixed(1) + ' ★';
+    document.getElementById('sd-rating-sub').textContent = myRatings.length + ' survey' + (myRatings.length > 1 ? 's' : '');
+  } else {
+    document.getElementById('sd-rating').textContent     = '—';
+    document.getElementById('sd-rating-sub').textContent = 'No surveys yet';
+  }
+
+  // Rank
+  const staff = teamData.filter(m => m.status === 'active');
+  const rank  = staff.findIndex(m => (m._dbId||m.id) === dbId) + 1;
+  document.getElementById('sd-rank').textContent     = '#' + rank + ' of ' + staff.length;
+  document.getElementById('sd-rank-sub').textContent = 'vs marketing team';
+
+  // Ticket list
+  renderStaffTicketTable(mine);
+
+  // Update tab highlights
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+}
+
+let staffDashboardTickets = [];
+function renderStaffTicketTable(tickets) {
+  staffDashboardTickets = tickets;
+  filterStaffTickets('');
+}
+
+function filterStaffTickets(q) {
+  const tbody = document.getElementById('staff-ticket-tbody');
+  if (!tbody) return;
+  const statusMap = {
+    new: '🆕 New', in_progress: '🔄 In Progress', in_review: '👁 In Review',
+    awaiting_approval: '⏳ Awaiting Approval', awaiting_submitter: '↩ Awaiting Submitter',
+    complete: '✓ Complete', cancelled: '✕ Cancelled'
+  };
+  const filtered = q
+    ? staffDashboardTickets.filter(t => (t.title+t.property_name+t.ticket_number).toLowerCase().includes(q.toLowerCase()))
+    : staffDashboardTickets;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#7a9aaa">No tickets found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(t => {
+    const due = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const dueStyle = t.due_date && new Date(t.due_date) < new Date() ? 'color:#e85c4a;font-weight:600' : '';
+    const timerStatus = getTimerStatus(t);
+    return `<tr onclick="openTicket('${t.ticket_number||t.id}','${t.id}')" style="cursor:pointer">
+      <td><span class="ticket-id">${t.ticket_number||'—'}</span></td>
+      <td><span class="ticket-title">${t.title}</span></td>
+      <td><span class="ticket-prop">${t.property_name||'—'}</span></td>
+      <td><span class="badge ${getStatusBadge(t.status)}">${statusMap[t.status]||t.status}</span></td>
+      <td style="${dueStyle}">${due}</td>
+      <td><span style="font-size:11px;font-weight:600;color:${timerStatus.color}">${timerStatus.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function getStatusBadge(status) {
+  const map = { new:'badge-new', in_progress:'badge-inprogress', in_review:'badge-review',
+    awaiting_approval:'badge-approval', awaiting_submitter:'badge-urgent',
+    complete:'badge-complete', cancelled:'badge-urgent' };
+  return map[status] || 'badge-new';
+}
+
+function getTimerStatus(t) {
+  if (['complete','cancelled'].includes(t.status)) return { label: 'Closed', color: '#7a9aaa' };
+  if (['awaiting_approval','awaiting_submitter'].includes(t.status)) return { label: '⏸ Stalled', color: '#d47b1a' };
+  if (t.due_date && new Date(t.due_date) < new Date()) return { label: '🔴 Overdue', color: '#e85c4a' };
+  return { label: '▶ Active', color: '#2a9d6e' };
+}
+
+function renderMetricsByType(closedTickets) {
+  const el = document.getElementById('metrics-by-type');
+  if (!el) return;
+  const byType = {};
+  closedTickets.forEach(t => {
+    const type = t.request_type || 'Other';
+    if (!byType[type]) byType[type] = { count: 0, totalSecs: 0 };
+    byType[type].count++;
+    byType[type].totalSecs += t.marketing_time_seconds || 0;
+  });
+  const types = Object.entries(byType).sort((a,b) => b[1].count - a[1].count);
+  if (!types.length) { el.innerHTML = '<div style="color:#7a9aaa;font-size:13px">No completed tickets yet.</div>'; return; }
+  const maxCount = Math.max(...types.map(([,v]) => v.count));
+  el.innerHTML = types.map(([type, data]) => {
+    const avgDays = data.totalSecs > 0 ? (data.totalSecs / data.count / 86400).toFixed(1) + 'd avg' : '—';
+    const pct = Math.round((data.count / maxCount) * 100);
+    return `<div class="metric-bar-wrap">
+      <div class="metric-bar-top"><span style="color:#5a7a86">${type}</span><span style="font-weight:600;color:var(--rise-dark)">${avgDays} · ${data.count} tickets</span></div>
+      <div class="metric-bar-bg"><div class="metric-bar-fill good" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// =============================================
+// REASSIGNMENT REQUEST
+// =============================================
+function openReassignRequestModal() {
+  const modal = document.getElementById('ticket-modal');
+  const ticketId = document.getElementById('modal-ticket-id').textContent;
+  document.getElementById('reassign-ticket-label').textContent = ticketId;
+  document.getElementById('reassign-request-modal').classList.add('open');
+}
+
+async function submitReassignRequest() {
+  const reason = document.getElementById('reassign-reason-select').value;
+  const other   = document.getElementById('reassign-reason-other').value;
+  const notes   = document.getElementById('reassign-notes').value;
+  if (!reason) { showToast('Please select a reason', 'warn'); return; }
+
+  const modal  = document.getElementById('ticket-modal');
+  const dbId   = modal?.dataset.dbId;
+  const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+  const actor  = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Team member';
+  const finalReason = reason === 'Other' ? other : reason;
+
+  if (dbId && window.DB) {
+    await window.DB.logTicketEvent(dbId, 'system', actor,
+      `🔀 Reassignment requested by ${actor} — Reason: ${finalReason}${notes ? ' · Notes: ' + notes : ''}`, {});
+  }
+
+  document.getElementById('reassign-request-modal').classList.remove('open');
+  showToast('Reassignment request submitted — the Marketing Director will review', 'success');
+}
+
+// =============================================
+// BULK REASSIGN
+// =============================================
+async function openBulkReassignModal() {
+  const fromSelect = document.getElementById('bulk-from-member');
+  const toSelect   = document.getElementById('bulk-to-member');
+  fromSelect.innerHTML = '<option value="">— Select member —</option>';
+  toSelect.innerHTML   = '<option value="">— Auto-assign by skill/load —</option>';
+  teamData.filter(m => m.status === 'active').forEach(m => {
+    const opt1 = document.createElement('option');
+    opt1.value = m._dbId||m.id;
+    opt1.textContent = m.fname + ' ' + (m.lname||'');
+    fromSelect.appendChild(opt1);
+    const opt2 = opt1.cloneNode(true);
+    toSelect.appendChild(opt2);
+  });
+  fromSelect.onchange = async function() {
+    const preview = document.getElementById('bulk-preview');
+    if (!this.value) { preview.textContent = 'Select a team member above to preview their open tickets.'; return; }
+    const tickets = await window.DB.loadTickets();
+    const mine = tickets.filter(t => t.assigned_to === this.value && !['complete','cancelled'].includes(t.status));
+    preview.innerHTML = mine.length > 0
+      ? `<strong>${mine.length} open ticket${mine.length>1?'s':''} will be reassigned:</strong><br>` +
+        mine.map(t => `<div style="font-size:12px;color:#5a7a86;padding:2px 0">· ${t.ticket_number} — ${t.title}</div>`).join('')
+      : '<span style="color:#7a9aaa">No open tickets found for this member.</span>';
+  };
+  document.getElementById('bulk-reassign-modal').classList.add('open');
+}
+
+async function executeBulkReassign() {
+  const fromId = document.getElementById('bulk-from-member').value;
+  const toId   = document.getElementById('bulk-to-member').value;
+  if (!fromId) { showToast('Select a team member to reassign from', 'warn'); return; }
+
+  const tickets = await window.DB.loadTickets();
+  const mine = tickets.filter(t => t.assigned_to === fromId && !['complete','cancelled'].includes(t.status));
+  if (!mine.length) { showToast('No open tickets to reassign', 'info'); return; }
+
+  const profile = window.currentUserProfile ? window.currentUserProfile() : null;
+  const actor   = profile ? (profile.full_name || profile.email.split('@')[0]) : 'Director';
+  let count = 0;
+
+  for (const t of mine) {
+    let assignTo = toId;
+    // If auto-assign, run routing logic
+    if (!assignTo) {
+      try {
+        const skillRule = routingData.find(r => r.typeId === t.request_type_id);
+        const requiredSkill = skillRule?.skillId || t.request_type_id;
+        const { data: eligible } = await window.DB.supabaseClient()
+          .from('team_members').select('id, fname, role_type, skills, max_tickets')
+          .eq('status','active').contains('skills', [requiredSkill]).neq('id', fromId);
+        if (eligible?.length) {
+          const { data: counts } = await window.DB.supabaseClient()
+            .from('tickets').select('assigned_to').in('status', ['new','in_progress','in_review','awaiting_approval']);
+          const cMap = {};
+          (counts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to] = (cMap[tc.assigned_to]||0)+1; });
+          eligible.sort((a,b) => (cMap[a.id]||0)-(cMap[b.id]||0));
+          assignTo = eligible[0].id;
+        }
+      } catch(e) {}
+    }
+    if (!assignTo) continue;
+    await window.DB.supabaseClient().from('tickets').update({ assigned_to: assignTo }).eq('id', t.id);
+    await window.DB.logTicketEvent(t.id, 'assigned', actor, `${actor} bulk-reassigned ticket from previous owner`, {});
+    count++;
+  }
+
+  document.getElementById('bulk-reassign-modal').classList.remove('open');
+  showToast(count + ' ticket' + (count>1?'s':'')+' reassigned', 'success');
+  await window.renderLiveTickets();
+  if (window.refreshTicketCount) await window.refreshTicketCount();
+}
 
 // ATTACHMENT UPLOAD // holds {name, url, size} for current ticket draft
 
@@ -5038,42 +5390,55 @@ function showSettingsTab(tab) {
 
 function tierOrder(m) { return TIER_META[m.roleType||'staff'].order; }
 
-function renderTeamCards() {
+async function renderTeamCards() {
   const grid = document.getElementById('team-cards-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#7a9aaa">Loading...</div>';
+
+  // Get live ticket counts
+  let countMap = {};
+  try {
+    const { data: activeTix } = await window.DB.supabaseClient()
+      .from('tickets').select('assigned_to')
+      .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter']);
+    (activeTix||[]).forEach(t => { if(t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to]||0)+1; });
+  } catch(e) {}
+
   grid.innerHTML = '';
-  // Sort by tier then name
   const sorted = [...teamData].sort((a,b) => tierOrder(a) - tierOrder(b) || a.fname.localeCompare(b.fname));
+
   sorted.forEach(m => {
-    const skillNames = m.skills.map(sid => {
+    const skillNames = (m.skills||[]).map(sid => {
       const s = skillsData.find(x => x.id === sid);
       return s ? s.name : sid;
     });
     const tm = TIER_META[m.roleType||'staff'];
-    const activeTickets = m.id === 'fania' ? 0 : Math.floor(Math.random() * m.maxTickets);
-    const pct = Math.round((activeTickets / m.maxTickets) * 100);
+    const dbId = m._dbId || m.id;
+    const activeTickets = countMap[dbId] || 0; // LIVE count, not random
+    const pct = Math.round((activeTickets / (m.maxTickets||5)) * 100);
     const barColor = pct >= 100 ? '#e85c4a' : pct >= 80 ? '#d47b1a' : 'var(--rise-light)';
     const card = document.createElement('div');
     card.className = 'card';
     card.style.cssText = 'position:relative;border-top:3px solid ' + (m.roleType==='director' ? '#d47b1a' : m.roleType==='vp' ? '#e85c4a' : 'var(--rise-light)');
     card.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-        <div style="width:44px;height:44px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:white;flex-shrink:0">${initials(m)}</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:${m.color||'var(--rise-dark)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:white;flex-shrink:0">${initials(m)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:15px;color:var(--rise-dark)">${m.fname} ${m.lname}.</div>
-          <div style="font-size:11px;color:#7a9aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.role}</div>
+          <div style="font-weight:600;font-size:15px;color:var(--rise-dark);cursor:pointer;text-decoration:underline;text-decoration-color:var(--rise-light)"
+               onclick="openStaffDashboard('${dbId}','${m.fname}','${(m.lname||'')}','${(m.role||'')}','${(m.color||'#013e51')}')">${m.fname} ${m.lname||''}.</div>
+          <div style="font-size:11px;color:#7a9aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.role||''}</div>
         </div>
         <span class="badge ${m.status==='active' ? 'badge-complete' : 'badge-urgent'}" style="flex-shrink:0">${m.status==='active' ? '● Active' : '○ Away'}</span>
       </div>
       <div style="margin-bottom:10px">
-        <span class="badge ${tm.badge}" style="font-size:10px">${tm.label}</span>
-        <span style="font-size:11px;color:#7a9aaa;margin-left:6px">${tm.desc}</span>
+        <span class="badge ${tm?.badge||'badge-new'}" style="font-size:10px">${tm?.label||'Staff'}</span>
+        <span style="font-size:11px;color:#7a9aaa;margin-left:6px">${tm?.desc||'Primary assignee'}</span>
       </div>
       <div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#7a9aaa;margin-bottom:4px">
           <span>Current load</span>
-          <span style="font-weight:${pct>=100?'700':'400'};color:${pct>=100?'#e85c4a':'#7a9aaa'}">${activeTickets} / ${m.maxTickets} tickets${pct>=100?' — AT CAPACITY':''}</span>
+          <span style="font-weight:${pct>=100?'700':'400'};color:${pct>=100?'#e85c4a':'#7a9aaa'}">${activeTickets} / ${m.maxTickets||5} tickets${pct>=100?' — AT CAPACITY':''}</span>
         </div>
-        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
       </div>
       <div style="margin-bottom:12px">
         <div style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Skills</div>
@@ -5274,14 +5639,43 @@ async function deleteMember() {
   if (!editingMemberId) return;
   const m = teamData.find(x => x.id === editingMemberId);
   if (!m) return;
-  if (!confirm('Remove ' + m.fname + ' from the team? Their active tickets will need to be reassigned.')) return;
+  if (!confirm('Remove ' + m.fname + ' from the team?\n\nTheir open tickets will be automatically reassigned to the next available staff member.')) return;
+
   try {
+    const dbId = m._dbId || m.id;
+    // Auto-reassign all open tickets before deleting
+    if (window.DB) {
+      const tickets = await window.DB.loadTickets();
+      const mine = tickets.filter(t => t.assigned_to === dbId && !['complete','cancelled'].includes(t.status));
+      for (const t of mine) {
+        const skillRule = routingData.find(r => r.typeId === t.request_type_id);
+        const requiredSkill = skillRule?.skillId || t.request_type_id;
+        try {
+          const { data: eligible } = await window.DB.supabaseClient()
+            .from('team_members').select('id, fname, skills, max_tickets')
+            .eq('status','active').contains('skills', [requiredSkill]).neq('id', dbId);
+          if (eligible?.length) {
+            const { data: counts } = await window.DB.supabaseClient()
+              .from('tickets').select('assigned_to').in('status', ['new','in_progress','in_review','awaiting_approval']);
+            const cMap = {};
+            (counts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to]=(cMap[tc.assigned_to]||0)+1; });
+            eligible.sort((a,b) => (cMap[a.id]||0)-(cMap[b.id]||0));
+            await window.DB.supabaseClient().from('tickets').update({ assigned_to: eligible[0].id }).eq('id', t.id);
+            await window.DB.logTicketEvent(t.id, 'assigned', 'System',
+              `Auto-reassigned to ${eligible[0].fname} after ${m.fname} was removed from team`, {});
+          }
+        } catch(e) { console.error('Auto-reassign on delete:', e); }
+      }
+      if (mine.length > 0) showToast(mine.length + ' ticket' + (mine.length>1?'s':'')+' auto-reassigned', 'info');
+    }
+    // Now delete the team member
     if (m._dbId) await window.DB.deleteTeamMember(m._dbId);
     teamData = teamData.filter(x => x.id !== editingMemberId);
     showToast(m.fname + ' removed from team', 'info');
   } catch(e) { showToast('Failed to remove: ' + e.message, 'error'); return; }
   closeAddMember();
   renderTeamCards();
+  await window.renderLiveTickets();
 }
 
 function closeAddMember() { document.getElementById('add-member-modal').classList.remove('open'); }
@@ -5687,6 +6081,7 @@ function showTab(tabId) {
   if (tabId === 'bonus') checkBonusAccess();
   if (tabId === 'approvals' && window.renderLiveApprovals) window.renderLiveApprovals();
   if (tabId === 'tickets' && window.renderLiveTickets) window.renderLiveTickets();
+  if (tabId === 'metrics') renderTeamMetrics();
 }
 
 // Initialization is handled by boot() in the module script above.
@@ -6296,6 +6691,11 @@ Object.assign(window, {
   openRejectionModal, closeRejectionModal, sendRejection,
   deleteTicket, deleteRating, renderLiveWorkload,
   saveTicketChanges, updateTicketAssign, updateTicketStatus, populateModalControls,
+  openReassignRequestModal, submitReassignRequest,
+  openBulkReassignModal, executeBulkReassign,
+
+  // Team Metrics & Staff Dashboard
+  renderTeamMetrics, openStaffDashboard, filterStaffTickets,
 
   // Settings — Approvers
   openAddApprover, openEditApprover, saveApprover, deleteApprover, closeAddApprover,
@@ -6538,6 +6938,70 @@ Object.assign(window, {
         <button class="btn btn-secondary" onclick="document.getElementById('nudge-modal').classList.remove('open')">Cancel</button>
       </div>
       <div style="margin-top:12px;font-size:11px;color:#7a9aaa">The nudge will be sent via Outlook to the approver's email on file. A copy is logged against the ticket.</div>
+    </div>
+  </div>
+</div>
+
+<!-- REASSIGNMENT REQUEST MODAL (all users) -->
+<div class="modal-overlay" id="reassign-request-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header" style="background:#013e51">
+      <div><div class="modal-title">Request Ticket Reassignment</div><div class="modal-meta" id="reassign-ticket-label">—</div></div>
+      <button class="modal-close" onclick="document.getElementById('reassign-request-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Reason for reassignment request <span style="color:#e85c4a">*</span></label>
+        <select id="reassign-reason-select" style="font-size:14px" onchange="document.getElementById('reassign-reason-other').style.display=this.value==='Other'?'block':'none'">
+          <option value="">— Select a reason —</option>
+          <option value="Incorrect assignment — skill mismatch">Incorrect assignment — skill mismatch</option>
+          <option value="Assigned owner is OOO / unavailable">Assigned owner is OOO / unavailable</option>
+          <option value="Escalation — needs senior attention">Escalation — needs senior attention</option>
+          <option value="Capacity overload — at ticket limit">Capacity overload — at ticket limit</option>
+          <option value="Property specialization needed">Property specialization needed</option>
+          <option value="Other">Other</option>
+        </select>
+        <textarea id="reassign-reason-other" placeholder="Describe the reason..." style="display:none;margin-top:8px;min-height:80px;font-size:13px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Additional notes (optional)</label>
+        <textarea id="reassign-notes" placeholder="Any context that will help the director assign correctly..." style="min-height:60px;font-size:13px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="document.getElementById('reassign-request-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitReassignRequest()">Submit Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BULK REASSIGN MODAL (director/vp) -->
+<div class="modal-overlay" id="bulk-reassign-modal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header" style="background:#013e51">
+      <div><div class="modal-title">Bulk Reassign Tickets</div><div class="modal-meta">Reassign multiple tickets at once — useful for staffing changes</div></div>
+      <button class="modal-close" onclick="document.getElementById('bulk-reassign-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Reassign tickets currently assigned to</label>
+        <select id="bulk-from-member" style="font-size:14px">
+          <option value="">— Select team member —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reassign to</label>
+        <select id="bulk-to-member" style="font-size:14px">
+          <option value="">— Auto-assign by skill/load —</option>
+        </select>
+      </div>
+      <div id="bulk-preview" style="background:var(--rise-pale);border-radius:var(--radius-sm);padding:12px;font-size:13px;min-height:40px;margin-bottom:16px">
+        Select a team member above to preview their open tickets.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="document.getElementById('bulk-reassign-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="executeBulkReassign()">Reassign All</button>
+      </div>
     </div>
   </div>
 </div>
