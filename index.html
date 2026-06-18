@@ -657,6 +657,34 @@
 
   /* SPINNER */
   .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+
+  /* ART — AI Creative Brief Assistant */
+  @keyframes artFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-4px) rotate(-3deg); }
+    75% { transform: translateY(2px) rotate(3deg); }
+  }
+  @keyframes artDance {
+    0% { transform: scale(1) rotate(0deg); }
+    20% { transform: scale(1.2) rotate(-15deg); }
+    40% { transform: scale(1.1) rotate(15deg); }
+    60% { transform: scale(1.2) rotate(-10deg); }
+    80% { transform: scale(1.1) rotate(10deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  @keyframes artThink {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05) rotate(5deg); }
+  }
+  #art-avatar {
+    animation: artFloat 3s ease-in-out infinite;
+  }
+  #art-avatar.dancing {
+    animation: artDance 0.8s ease-in-out;
+  }
+  #art-avatar.thinking {
+    animation: artThink 0.6s ease-in-out infinite;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* EMPTY STATE */
@@ -974,37 +1002,83 @@
         </div>
       </div>
 
-      <!-- AI BRIEF ASSISTANT -->
+      <!-- ARTHUR "ART" — AI CREATIVE BRIEF ASSISTANT -->
       <div>
-        <div class="card">
-          <div class="card-title">✨ AI Creative Brief Assistant</div>
-          <p style="font-size:13px;color:#5a7a86;margin-bottom:16px;line-height:1.6">Our AI reads your request and generates a structured creative brief plus visual style examples — so the team knows exactly what you're asking for, and you can confirm it before work begins.</p>
+        <div class="card" style="border-top:3px solid #6ba2b8">
 
-          <div style="margin-bottom:12px">
-            <label style="display:block;margin-bottom:6px">What feeling or vibe should this piece have?</label>
-            <input type="text" id="req-vibe" placeholder="e.g. warm, luxury, energetic, playful, professional...">
+          <!-- ART Header -->
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+            <div id="art-avatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#013e51,#2a9d6e);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 12px rgba(1,62,81,0.3);cursor:pointer;transition:transform 0.3s"
+                 onclick="artDance()" title="Click me!">🎨</div>
+            <div>
+              <div style="font-weight:700;font-size:16px;color:var(--rise-dark)">Arthur <span style="color:#6ba2b8">"ART"</span></div>
+              <div style="font-size:11px;color:#7a9aaa">AI Creative Brief Assistant · Powered by Claude</div>
+            </div>
+            <div id="art-mood" style="margin-left:auto;font-size:11px;color:#7a9aaa;font-style:italic">Ready to create ✦</div>
           </div>
-          <div style="margin-bottom:16px">
-            <label style="display:block;margin-bottom:6px">Who is the audience for this piece?</label>
-            <input type="text" id="req-audience" placeholder="e.g. young professionals, 55+ active adults, college students...">
-          </div>
 
-          <button class="btn-ai" onclick="generateBrief()" id="ai-btn">
-            <span id="ai-btn-text">✨ Generate Creative Brief</span>
-          </button>
+          <p style="font-size:13px;color:#5a7a86;margin-bottom:14px;line-height:1.6">Hey! I'm ART. Tell me about your request and I'll write a full creative brief, suggest visuals, and even generate a concept image — so your team knows exactly what to build.</p>
 
-          <div class="ai-panel" id="ai-panel">
-            <div class="ai-panel-header">
-              <div class="ai-icon">✨</div>
+          <!-- Creative prompting questions -->
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+            <div>
+              <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--rise-dark)">🎭 Vibe / Feeling</label>
+              <input type="text" id="req-vibe" placeholder="e.g. summer fun, luxury, energetic, playful, cozy fall...">
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--rise-dark)">👥 Target Audience</label>
+              <input type="text" id="req-audience" placeholder="e.g. young professionals, 55+ active adults, college students...">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div>
-                <div class="ai-panel-title">AI Creative Brief</div>
-                <div class="ai-panel-sub">Review and confirm before submitting</div>
+                <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--rise-dark)">📐 Format / Size</label>
+                <input type="text" id="req-size" placeholder="e.g. 1080×1350px, 8.5×11 flyer...">
+              </div>
+              <div>
+                <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--rise-dark)">🎯 Main CTA</label>
+                <input type="text" id="req-cta" placeholder="e.g. Schedule a Tour, Apply Today...">
               </div>
             </div>
-            <div id="ai-brief-output" class="ai-output"></div>
+            <div>
+              <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--rise-dark)">🚫 Anything to avoid?</label>
+              <input type="text" id="req-avoid" placeholder="e.g. no red, no competitor references, avoid stock photo feel...">
+            </div>
+          </div>
+
+          <!-- ART Generate Button -->
+          <button class="btn-ai" onclick="generateBrief()" id="ai-btn" style="width:100%;justify-content:center;margin-bottom:12px">
+            <span id="ai-btn-text">✨ Ask ART to Build Brief</span>
+          </button>
+
+          <!-- Always-visible Submit without brief -->
+          <button class="btn btn-secondary btn-sm" onclick="submitTicket()" style="width:100%;justify-content:center;margin-bottom:6px">
+            Submit Without Brief →
+          </button>
+          <div style="font-size:11px;color:#aac0ca;text-align:center;margin-bottom:8px">You can always submit and add the brief later</div>
+
+          <!-- ART Output Panel -->
+          <div class="ai-panel" id="ai-panel">
+            <div class="ai-panel-header" style="background:linear-gradient(135deg,#013e51,#0a5a73)">
+              <div id="art-avatar-mini" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6ba2b8,#2a9d6e);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🎨</div>
+              <div>
+                <div class="ai-panel-title" style="color:white">ART's Creative Brief</div>
+                <div class="ai-panel-sub" style="color:#aac0ca">Review and confirm before submitting</div>
+              </div>
+            </div>
+
+            <!-- AI Generated Image -->
+            <div id="art-image-section" style="display:none;margin:12px 0">
+              <div style="font-size:11px;font-weight:600;color:#013e51;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">🖼 ART's Concept Sketch</div>
+              <div id="art-image-container" style="border-radius:10px;overflow:hidden;background:var(--rise-pale);min-height:160px;display:flex;align-items:center;justify-content:center">
+                <div style="text-align:center;padding:20px;color:#7a9aaa;font-size:12px">Generating concept...</div>
+              </div>
+              <div style="font-size:10px;color:#aac0ca;margin-top:4px;text-align:center">AI concept sketch — for direction only, not final deliverable</div>
+            </div>
+
+            <div id="ai-brief-output" class="ai-output" style="margin-top:12px"></div>
 
             <div style="margin-top:16px">
-              <div style="font-size:12px;font-weight:600;color:#4a6a7a;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px">Visual Style Examples</div>
+              <div style="font-size:12px;font-weight:600;color:#4a6a7a;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px">Visual Style Direction</div>
               <div class="visual-examples" id="visual-examples">
                 <div class="visual-example" onclick="selectExample(this,'Bright & airy')">
                   <div class="visual-example-img" style="background:linear-gradient(135deg,#e8f5f0,#c2e8d8)">☀️</div>
@@ -3430,69 +3504,94 @@ async function updateRouting() {
 }
 
 // AI BRIEF GENERATION
+// ART avatar dance animation
+function artDance() {
+  const av = document.getElementById('art-avatar');
+  if (!av) return;
+  av.classList.remove('dancing');
+  void av.offsetWidth; // force reflow
+  av.classList.add('dancing');
+  setTimeout(() => av.classList.remove('dancing'), 850);
+  document.getElementById('art-mood').textContent = ['Feeling inspired ✦', 'Let\'s make something ✦', 'Creativity loading... ✦', 'Picasso vibes ✦'][Math.floor(Math.random()*4)];
+}
+
 async function generateBrief() {
-  const title = document.getElementById('req-title').value;
-  const desc = document.getElementById('req-desc').value;
-  const type = document.getElementById('req-type').value;
-  const property = document.getElementById('req-property').value;
-  const vibe = document.getElementById('req-vibe').value;
-  const audience = document.getElementById('req-audience').value;
-  const size = document.getElementById('req-size') ? document.getElementById('req-size').value : '';
+  const title    = document.getElementById('req-title')?.value || '';
+  const desc     = document.getElementById('req-desc')?.value || '';
+  const type     = document.getElementById('req-type')?.value || '';
+  const property = document.getElementById('req-property')?.value || '';
+  const vibe     = document.getElementById('req-vibe')?.value || '';
+  const audience = document.getElementById('req-audience')?.value || '';
+  const size     = document.getElementById('req-size')?.value || '';
+  const cta      = document.getElementById('req-cta')?.value || '';
+  const avoid    = document.getElementById('req-avoid')?.value || '';
 
   if (!title && !desc) {
-    showToast('Please fill in the request title and description first', 'warn');
+    showToast('Give ART something to work with — fill in the Request Title and Description first', 'warn');
     return;
   }
 
-  const btn = document.getElementById('ai-btn');
-  const btnText = document.getElementById('ai-btn-text');
-  const panel = document.getElementById('ai-panel');
+  const btn    = document.getElementById('ai-btn');
+  const btnTxt = document.getElementById('ai-btn-text');
+  const panel  = document.getElementById('ai-panel');
   const output = document.getElementById('ai-brief-output');
+  const artAv  = document.getElementById('art-avatar');
+  const artMood= document.getElementById('art-mood');
 
+  // ART gets to work
   btn.disabled = true;
-  btnText.innerHTML = '<span class="spinner"></span> Building brief...';
+  btnTxt.innerHTML = '<span class="spinner"></span> ART is thinking...';
   panel.classList.add('visible');
-  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> Crafting your creative brief...</div>';
+  if (artAv) { artAv.classList.remove('dancing'); artAv.classList.add('thinking'); }
+  if (artMood) artMood.textContent = 'Crafting your brief ✦';
+  output.innerHTML = '<div class="ai-loading"><div class="ai-loading-dots"><span></span><span></span><span></span></div> ART is reading your request and building the brief...</div>';
 
-  // Get any attached file names for context
-  const attachedFiles = ticketAttachments.map(a => a.name).join(', ');
+  const attachedFiles = (window.ticketAttachments||[]).map(a => a.name).join(', ');
 
-  const prompt = `You are a creative director for RISE Residential, a multifamily real estate company.
-A site team member has submitted a marketing creative request. Write a vivid, specific creative brief.
+  const prompt = `You are Arthur "ART", a witty and creative AI brief assistant for RISE Residential, a multifamily real estate company.
 
-Request:
+A site team member has submitted a marketing creative request. Write a vivid, actionable creative brief in your signature structured format. Be specific — a designer should be able to start without any additional questions.
+
+Request Details:
 - Property: ${property || 'Not specified'}
 - Type: ${type || 'Not specified'}
-- Title: ${title || 'Not specified'}
-- Description: ${desc || 'Not specified'}
-- Desired vibe: ${vibe || 'Not specified'}
-- Target audience: ${audience || 'Not specified'}
-- Dimensions: ${size || 'Not specified'}
-${attachedFiles ? `- Reference files attached: ${attachedFiles}` : ''}
+- Title: ${title}
+- Description: ${desc}
+- Vibe/Feeling: ${vibe || 'Not specified'}
+- Target Audience: ${audience || 'Not specified'}
+- Format/Size: ${size || 'Confirm with submitter'}
+- CTA: ${cta || 'Standard — Schedule a Tour or Apply Today'}
+- Things to avoid: ${avoid || 'None specified'}
+${attachedFiles ? `- Reference files: ${attachedFiles}` : ''}
 
-Write a detailed creative brief using EXACTLY this format. Be specific and visual — this brief must give a designer enough to start without any further questions:
+Write EXACTLY in this format (use the section labels precisely):
 
-AUDIENCE: [Specific description of who this reaches and what motivates them]
+AUDIENCE: [Specific who, what motivates them, what stage of the leasing funnel they're in]
 
-TONE & VIBE: [2-3 specific adjectives + what emotion this should trigger]
+TONE & VIBE: [3 specific adjectives + one sentence describing the emotional goal]
 
-KEY MESSAGE: [One single sentence the viewer should remember]
+KEY MESSAGE: [Single sentence — the one thing the viewer remembers]
 
-VISUAL DIRECTION: [Very specific — describe imagery style, photo subjects, color mood, composition, lighting. Mention RISE brand colors (#013e51 dark blue, #6ba2b8 light blue) if applicable. Name specific shots like "overhead pool shot at golden hour" or "young couple in kitchen, lifestyle editorial feel"]
+VISUAL DIRECTION: [Very specific — describe subject, lighting, color temperature, composition, shot type. Reference RISE brand colors #013e51 and #6ba2b8 where relevant. Name specific shots like "golden hour pool deck, wide angle, warm saturation"]
 
-COPY DIRECTION: [Suggest an actual headline or 2-3 headline options. Suggest CTA. Specify font weight/style if relevant]
+COPY DIRECTION:
+Headline 1: [actual headline]
+Headline 2: [alternate]
+CTA: ${cta || 'Schedule a Tour / Apply Today'}
+Tone note: [how copy should feel]
 
-FORMAT NOTES: [Exact dimensions if known, platform specs, safe zones, any technical requirements]
+FORMAT NOTES: [Platform, exact dimensions if known, safe zones, technical specs]
 
 VISUAL STYLE OPTIONS:
-Option A — [Style name]: [2-3 sentences describing this visual approach with specific examples]
-Option B — [Style name]: [2-3 sentences describing this visual approach with specific examples]
-Option C — [Style name]: [2-3 sentences describing this visual approach with specific examples]
+Option A — [Style Name]: [2-3 sentences with specific visual examples tailored to THIS request]
+Option B — [Style Name]: [2-3 sentences with specific visual examples]
+Option C — [Style Name]: [2-3 sentences with specific visual examples]
 
-IMPORTANT DETAILS: [Any must-haves, brand rules, things to avoid, legal/compliance notes]`;
+IMPORTANT DETAILS: [Must-haves, brand rules, age restrictions, compliance notes, things not to miss]`;
 
-  // Try Edge Function proxy first
   let text = null;
+
+  // Try Supabase Edge Function
   try {
     const res = await fetch('https://dgkedyzdhneiypqeimhd.supabase.co/functions/v1/ai-brief', {
       method: 'POST',
@@ -3502,41 +3601,41 @@ IMPORTANT DETAILS: [Any must-haves, brand rules, things to avoid, legal/complian
     if (res.ok) { const d = await res.json(); text = d.text || d.content || null; }
   } catch(e) {}
 
-  // Rich fallback using form data
+  // Smart fallback using actual inputs
   if (!text) {
     const typeVisuals = {
       'Social Media Post / Reel / Story': {
-        optA: 'Lifestyle Editorial — Authentic candid moments: residents laughing poolside, morning coffee on a balcony, friends gathering in a clubhouse. Natural light, slightly warm color grade, loose composition. Feels like a friend\'s Instagram, not an ad.',
-        optB: 'Bold Typography-Forward — Large headline dominates the frame over a clean lifestyle photo. High contrast, RISE dark blue or white text. Text carries the message, image sets the mood.',
-        optC: 'Community Showcase — Feature the amenity or space as the hero. Wide establishing shot, pristine staging, vibrant but real. Works well for pool reveals, fitness center tours, or event teasers.'
+        optA: 'Lifestyle Editorial — Authentic candid moments in and around the community. Natural light, slightly warm color grade, loose editorial composition. Feels real, not staged.',
+        optB: 'Bold Typography-Forward — Large headline dominates over a clean lifestyle photo. RISE dark blue #013e51 or white text. Message-first design.',
+        optC: 'Amenity Showcase — The feature space as hero. Wide establishing shot, pristine staging, vibrant and authentic. Works great for pool reveals or event teasers.'
       },
       'Paid Ad Design (Google, Meta)': {
-        optA: 'Conversion-Focused Clean — White or light background, bold benefit headline, single lifestyle photo, clear CTA button in RISE dark blue. High click-through design.',
+        optA: 'Conversion-Focused — Clean background, bold benefit headline, single lifestyle photo, clear CTA button in RISE dark blue. Designed for clicks.',
         optB: 'Lifestyle Immersive — Full-bleed community photo with gradient overlay, headline in white, subtle CTA. Emotional pull over direct response.',
-        optC: 'Split Format — Left side: lifestyle image. Right side: RISE brand color block with headline and CTA. Strong brand recognition, works across placements.'
+        optC: 'Split Format — Left: lifestyle image. Right: RISE brand color block with headline and CTA. Strong brand recognition across placements.'
       }
     };
     const visuals = typeVisuals[type] || {
-      optA: 'Clean Brand Aesthetic — RISE dark blue (#013e51) and light blue (#6ba2b8) color palette. Clean sans-serif typography. Lifestyle photography with natural light. Professional and approachable.',
-      optB: 'Bold & Graphic — Strong typography, minimal photography, high contrast. Clear hierarchy. Works well in print and digital.',
-      optC: 'Warm Lifestyle — Warm color tones, authentic candid photography, community feel. Residents as the hero rather than the property.'
+      optA: 'Clean Brand Aesthetic — RISE palette (#013e51, #6ba2b8), clean sans-serif typography, authentic lifestyle photography with natural light.',
+      optB: 'Bold & Graphic — Strong type hierarchy, minimal photography, high contrast. Clear and direct.',
+      optC: 'Warm Community — Warm color tones, candid photography, residents as heroes rather than the property itself.'
     };
 
-    text = `AUDIENCE: ${audience || 'Prospective and current residents at ' + (property || 'this RISE community')} — people who value community, quality of life, and convenience.
+    text = `AUDIENCE: ${audience || 'Prospective and current residents at ' + (property || 'this RISE community')} — people who value quality of life, connection, and a home that reflects who they are.
 
-TONE & VIBE: ${vibe || 'Warm, aspirational, and community-forward'} — should make the viewer feel like they belong here.
+TONE & VIBE: ${vibe || 'Warm, aspirational, and community-forward'} — should make the viewer feel like they already belong here.
 
-KEY MESSAGE: ${title || 'Experience the best of community living at ' + (property || 'RISE')}.
+KEY MESSAGE: ${title}.
 
-VISUAL DIRECTION: Feature authentic community imagery — real lifestyle moments, amenities at their best, and human connection. Use RISE brand colors (#013e51 dark blue, #6ba2b8 light blue) as accents or backgrounds. Avoid stock photo clichés. Preferred shots: golden hour exterior, amenity detail, lifestyle resident moment. Clean composition with strong focal point.
+VISUAL DIRECTION: Feature authentic community imagery at ${property || 'the property'} — real lifestyle moments, amenities at their best, human connection front and center. Use RISE brand colors (#013e51 dark blue, #6ba2b8 light blue) as accents. Preferred shots: golden hour exterior, amenity detail close-up, lifestyle resident moment. Clean composition with a strong single focal point. Avoid generic stock photo feel.
 
 COPY DIRECTION:
-Headline Option 1: "${title || 'Your community. Your story.'}"
-Headline Option 2: "Life is better at ${property || 'RISE'}."
-Headline Option 3: "${vibe || 'Find your place here'}."
-CTA: "Schedule a Tour" or "Apply Today" or "Learn More"
+Headline 1: "${title}"
+Headline 2: "Life is better at ${property || 'RISE'}."
+CTA: "${cta || 'Schedule a Tour — Apply Today'}"
+Tone note: Direct, benefit-led, warm but not corporate. Never salesy.
 
-FORMAT NOTES: ${size || 'Confirm dimensions with submitter. For social: 1080×1080 (square) or 1080×1350 (portrait). For ads: provide multiple sizes (1200×628, 1080×1080, 160×600).'}.
+FORMAT NOTES: ${size || 'Confirm dimensions with submitter. Social: 1080×1080 or 1080×1350. Ads: provide 1200×628, 1080×1080, and 160×600.'}.${avoid ? '\nAvoid: ' + avoid + '.' : ''}
 
 VISUAL STYLE OPTIONS:
 Option A — ${visuals.optA}
@@ -3545,15 +3644,120 @@ Option B — ${visuals.optB}
 
 Option C — ${visuals.optC}
 
-IMPORTANT DETAILS: All content must be reviewed by the marketing team before posting or printing. Confirm property-specific details with submitter. Do not use competitor names or pricing comparisons. Ensure ADA compliance for digital ads (alt text, contrast ratios).${attachedFiles ? ' Reference files provided: ' + attachedFiles + ' — review these before starting.' : ''}`;
-
-    showToast('Creative brief generated from your inputs', 'success');
+IMPORTANT DETAILS: All content requires marketing team review before posting or printing. Confirm all property-specific details with the submitter. Ensure ADA compliance for digital formats (contrast ratios, alt text).${attachedFiles ? ' Reference files attached: ' + attachedFiles + ' — review before starting.' : ''}`;
   }
 
-  output.textContent = text;
+  // Render formatted output
+  const sections = text.split(/\n(?=[A-Z][A-Z\s&\/]+:)/);
+  output.innerHTML = sections.map(section => {
+    const match = section.match(/^([A-Z][A-Z\s&\/]+):\s*([\s\S]*)/);
+    if (!match) return section.trim() ? `<div style="font-size:13px;color:#2a4550;line-height:1.6;margin-bottom:8px">${section.trim().replace(/\n/g,'<br>')}</div>` : '';
+    const label = match[1].trim();
+    const content = match[2].trim();
+    if (label === 'VISUAL STYLE OPTIONS') {
+      const opts = content.split(/\n(?=Option [A-C])/);
+      return `<div style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:#013e51;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #d0e8f0">${label}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">${opts.map(opt => {
+          const om = opt.match(/^(Option [A-C][^:]*?):\s*([\s\S]*)/);
+          if (om) return `<div style="background:white;border:1px solid #d0e8f0;border-radius:8px;padding:10px 12px"><div style="font-weight:600;color:#013e51;font-size:12px;margin-bottom:3px">${om[1].trim()}</div><div style="font-size:12px;color:#4a7080;line-height:1.5">${om[2].trim()}</div></div>`;
+          return '';
+        }).join('')}</div>
+      </div>`;
+    }
+    if (label === 'COPY DIRECTION') {
+      return `<div style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:#013e51;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">${label}</div>
+        <div style="background:white;border:1px solid #d0e8f0;border-radius:8px;padding:10px 12px;font-size:12px;color:#4a7080;line-height:1.8">${content.replace(/\n/g,'<br>')}</div>
+      </div>`;
+    }
+    return `<div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;color:#013e51;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${label}</div>
+      <div style="font-size:13px;color:#2a4550;line-height:1.6">${content.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }).join('');
+
+  // Generate concept image using canvas
+  generateConceptImage(title, type, vibe, property);
+
+  // ART finishes
+  if (artAv) { artAv.classList.remove('thinking'); artAv.classList.add('dancing'); setTimeout(() => artAv.classList.remove('dancing'), 850); }
+  if (artMood) artMood.textContent = 'Brief complete — how\'s that? ✦';
   btn.disabled = false;
-  btnText.innerHTML = '✨ Generate Creative Brief';
+  btnTxt.innerHTML = '✨ Ask ART to Build Brief';
 }
+
+// ART concept image generator — canvas-based
+function generateConceptImage(title, type, vibe, property) {
+  const section = document.getElementById('art-image-section');
+  const container = document.getElementById('art-image-container');
+  if (!section || !container) return;
+  section.style.display = 'block';
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:#7a9aaa;font-size:12px"><div class="ai-loading-dots" style="justify-content:center;margin-bottom:6px"><span></span><span></span><span></span></div>Sketching concept...</div>';
+
+  setTimeout(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 480; canvas.height = 240;
+    const ctx = canvas.getContext('2d');
+
+    // Background based on vibe
+    const vibeL = (vibe||'').toLowerCase();
+    let bg1 = '#013e51', bg2 = '#6ba2b8';
+    if (vibeL.includes('warm') || vibeL.includes('summer') || vibeL.includes('fun')) { bg1='#d47b1a'; bg2='#fdf0e0'; }
+    else if (vibeL.includes('luxury') || vibeL.includes('elegant')) { bg1='#1a1a2e'; bg2='#2a4550'; }
+    else if (vibeL.includes('playful') || vibeL.includes('bright')) { bg1='#2a9d6e'; bg2='#6ba2b8'; }
+    else if (vibeL.includes('bold')) { bg1='#013e51'; bg2='#0a3040'; }
+
+    const grad = ctx.createLinearGradient(0, 0, 480, 240);
+    grad.addColorStop(0, bg1); grad.addColorStop(1, bg2);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, 480, 240);
+
+    // Abstract shapes (Picasso-inspired)
+    ctx.globalAlpha = 0.15;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random()*480, Math.random()*240, 20+Math.random()*60, 0, Math.PI*2);
+      ctx.fillStyle = 'white'; ctx.fill();
+    }
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(60, 40, 200, 160);
+    ctx.globalAlpha = 1;
+
+    // RISE branding
+    ctx.fillStyle = 'rgba(1,62,81,0.5)'; ctx.fillRect(0, 0, 480, 240);
+    ctx.fillStyle = 'white'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
+    ctx.fillText('RISE RESIDENTIAL', 16, 24);
+
+    // Property name
+    ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 8;
+    ctx.fillText(property || 'RISE Community', 240, 100);
+
+    // Title (truncated)
+    ctx.font = '14px Arial'; ctx.shadowBlur = 4;
+    const shortTitle = (title||'').length > 40 ? title.slice(0,40)+'...' : title;
+    ctx.fillText(shortTitle, 240, 130);
+
+    // Type tag
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(107,162,184,0.8)';
+    ctx.beginPath(); ctx.roundRect(160, 150, 160, 26, 13); ctx.fill();
+    ctx.fillStyle = 'white'; ctx.font = '11px Arial';
+    ctx.fillText(type ? type.split('/')[0].trim() : 'Marketing', 240, 168);
+
+    // ART signature
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'italic 10px Arial'; ctx.textAlign = 'right';
+    ctx.fillText('concept by ART ✦', 464, 230);
+
+    canvas.style.cssText = 'width:100%;border-radius:8px';
+    container.innerHTML = '';
+    container.appendChild(canvas);
+    container.style.minHeight = '';
+  }, 800);
+}
+
 
 async function regenerateBrief() {
   document.getElementById('ai-panel').classList.remove('visible');
@@ -5238,9 +5442,13 @@ function openRejectionModal(ticketId, assigneeName, ticketTitle, assigneeEmail, 
 
   const emailBody = document.getElementById('rejection-email-body');
   if (emailBody) {
-    emailBody.value = 'Hi ' + assigneeName + ',\n\nChanges are needed on ticket ' + ticketId + ' — ' + ticketTitle + '\n\nView ticket: ' + appUrl + '\n\nReason: [Fill in above]\n\nPlease revise and resubmit.\n\nThank you,\nRISE Marketing Team';
+    const buildBody = (reason) => {
+      const appUrl = 'https://jac1827.github.io/rise-marketing-command-center/#approvals';
+      return 'Hi ' + assigneeName + ' and ' + (submitterName||'Submitter') + ',\n\nChanges have been requested on the following marketing ticket before it can move forward to approval.\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\nView & update: ' + appUrl + '\n\nReason' + (document.getElementById('rejection-category')?.value ? ' (' + document.getElementById('rejection-category').value + ')' : '') + ':\n' + (reason || '[No reason provided]') + '\n\n' + assigneeName + ', please review the notes above, make the necessary revisions to the creative, and resubmit the ticket for approval. The marketing team\'s SLA clock is paused during this time — so this does not count against your performance metrics.\n\n' + (submitterName||'Submitter') + ', your input may be needed to clarify the original request before this can move forward.\n\nThank you,\nRISE Marketing Team';
+    };
+    emailBody.value = buildBody('');
     document.getElementById('rejection-reason').oninput = function() {
-      emailBody.value = 'Hi ' + assigneeName + ',\n\nChanges are needed on the following marketing request:\n\nTicket: ' + ticketId + ' — ' + ticketTitle + '\nView & update: ' + appUrl + '\n\nReason:\n' + (this.value || '[No reason provided]') + '\n\nThe ticket is now "Awaiting Submitter Review" — please revise and resubmit for approval.\n\nThank you,\nRISE Marketing Team';
+      emailBody.value = buildBody(this.value);
     };
   }
 
@@ -5302,7 +5510,7 @@ async function sendRejection() {
 
       // Build mailto with all recipients and ticket hyperlink
       const subject = encodeURIComponent(`Changes Requested: ${ticketId} — ${ticketTitle}`);
-      const bodyText = `Hi ${assigneeName},\n\nChanges have been requested on the following marketing ticket before it can be approved.\n\nTicket: ${ticketId} — ${ticketTitle}\nView & update: ${appUrl}\n\nReason (${category}):\n${reason}\n\nThe ticket has been moved to "Awaiting Submitter Review" — the marketing team's SLA clock is paused until revisions are submitted.\n\nPlease update the ticket and resubmit for approval.\n\nThank you,\nRISE Marketing Team`;
+      const bodyText = `Hi ${assigneeName} and ${submitterName || 'Submitter'},\n\nChanges have been requested on the following marketing ticket before it can be approved.\n\nTicket: ${ticketId} — ${ticketTitle}\nView & update: ${appUrl}\n\nReason (${category}):\n${reason}\n\n${assigneeName}, please review the feedback above, update the creative, and resubmit the ticket. Your SLA clock is paused during this stage — this time does not count against your performance metrics.\n\n${submitterName || 'Submitter'}, your clarification may be needed before this ticket can move forward.\n\nThank you,\nRISE Marketing Team`;
       const mailto = `mailto:${recipients.join(';')}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
       window.open(mailto, '_blank');
 
@@ -6893,6 +7101,7 @@ Object.assign(window, {
   // New Request
   updateRouting, generateBrief, regenerateBrief, submitTicket,
   handleAttachmentUpload, removeAttachment,
+  artDance, generateConceptImage,
 
   // Tickets & Approvals
   approveItem, sendNudge, sendNudgeEmail,
