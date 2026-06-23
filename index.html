@@ -949,8 +949,8 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
   <button class="nav-tab" onclick="showTab('metrics')">⚡ Team Metrics</button>
   <button class="nav-tab" onclick="showTab('reporting')">📊 Reporting</button>
   <button class="nav-tab" id="bonus-tab" onclick="showTab('bonus')" style="display:none">🏆 Bonus</button>
-  <button class="nav-tab" onclick="showTab('settings')">⚙️ Settings</button>
   <button class="nav-tab" onclick="showTab('marketing')" id="mkt-nav-tab">📣 Grassroots Marketing</button>
+  <button class="nav-tab" onclick="showTab('settings')">⚙️ Settings</button>
 </div>
 
 <!-- MAIN -->
@@ -6612,7 +6612,7 @@ function showTab(tabId) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const page = document.getElementById('page-' + tabId);
   if (page) page.classList.add('active');
-  const tabMap = {'dashboard':0,'new-request':1,'tickets':2,'approvals':3,'lead-sources':4,'metrics':5,'reporting':6,'bonus':7,'settings':8,'marketing':9};
+  const tabMap = {'dashboard':0,'new-request':1,'tickets':2,'approvals':3,'lead-sources':4,'metrics':5,'reporting':6,'bonus':7,'marketing':8,'settings':9};
   const tabs = document.querySelectorAll('.nav-tab');
   if (tabMap[tabId] !== undefined && tabs[tabMap[tabId]]) tabs[tabMap[tabId]].classList.add('active');
   if (tabId === 'lead-sources') initLeadSources();
@@ -8396,6 +8396,19 @@ async function resetPwd(uname){
 function mktInit(){
   if(window._mktInitialized){renderAll();return;}
   window._mktInitialized=true;
+  // Auto-login with admin credentials when inside MCC (user already authenticated)
+  if(!window._mktLoggedIn){
+    window._mktAutoLogin=true;
+    setTimeout(function(){
+      if(!window._mktLoggedIn&&typeof doLogin==='function'){
+        var luEl=document.getElementById('lu');
+        var lpEl=document.getElementById('lp');
+        if(luEl)luEl.value='jac';
+        if(lpEl)lpEl.value='rise2026';
+        doLogin();
+      }
+    },100);
+  }
   var lp=document.getElementById('lp');
   if(lp)lp.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
   var alr=document.getElementById('al-rel');
