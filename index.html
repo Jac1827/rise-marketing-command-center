@@ -949,8 +949,8 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
   <button class="nav-tab" onclick="showTab('metrics')">⚡ Team Metrics</button>
   <button class="nav-tab" onclick="showTab('reporting')">📊 Reporting</button>
   <button class="nav-tab" id="bonus-tab" onclick="showTab('bonus')" style="display:none">🏆 Bonus</button>
-  <button class="nav-tab" onclick="showTab('marketing')" id="mkt-nav-tab">📣 Grassroots Marketing</button>
   <button class="nav-tab" onclick="showTab('settings')">⚙️ Settings</button>
+  <button class="nav-tab" onclick="showTab('marketing')" id="mkt-nav-tab">📣 Grassroots Marketing</button>
 </div>
 
 <!-- MAIN -->
@@ -1031,7 +1031,7 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
       <table class="ticket-table">
         <thead>
           <tr>
-            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Due</th>
+            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Due</th><th>📅 Days</th><th>⏱ Timer</th>
           </tr>
         </thead>
         <tbody id="dashboard-ticket-tbody">
@@ -1290,7 +1290,10 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
           <option>In Progress</option>
           <option>In Review</option>
           <option>Awaiting Approval</option>
+          <option>Awaiting Submitter</option>
+          <option>Awaiting PEX Funds</option>
           <option>Complete</option>
+          <option>Cancelled</option>
         </select>
         <select style="width:auto;font-size:12px;padding:6px 10px">
           <option>All types</option>
@@ -1307,7 +1310,7 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
       <table class="ticket-table" id="full-ticket-table">
         <thead>
           <tr>
-            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th><th>⏱ Timer</th><th id="ticket-delete-col" style="display:none"></th>
+            <th>ID</th><th>Request</th><th>Property</th><th>Type</th><th>Assigned</th><th>Status</th><th>Opened</th><th>Due</th><th>Budget</th><th>📅 Days Open</th><th>⏱ Timer</th><th id="ticket-delete-col" style="display:none"></th>
           </tr>
         </thead>
         <tbody id="ticket-tbody">
@@ -1770,9 +1773,9 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
         <input type="search" id="staff-ticket-search" placeholder="Search tickets..." style="width:200px;font-size:12px" oninput="filterStaffTickets(this.value)">
       </div>
       <table class="ticket-table">
-        <thead><tr><th>ID</th><th>Request</th><th>Property</th><th>Status</th><th>Due</th><th>Timer</th></tr></thead>
+        <thead><tr><th>ID</th><th>Request</th><th>Property</th><th>Status</th><th>Due</th><th>📅 Days Open</th><th>Timer</th></tr></thead>
         <tbody id="staff-ticket-tbody">
-          <tr><td colspan="6" style="text-align:center;padding:20px;color:#7a9aaa">Loading...</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:#7a9aaa">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1879,6 +1882,58 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
         <thead><tr><th>Report Type</th><th>Period</th><th>Uploaded</th><th>Total Leads</th><th>Leases</th><th>Tours</th><th>Key Metric</th><th></th></tr></thead>
         <tbody id="report-history-tbody"></tbody>
       </table>
+    </div>
+
+    <!-- STATUS VELOCITY & BOTTLENECK REPORT -->
+    <div class="card" style="margin-top:20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <div class="card-title" style="margin-bottom:4px">🔍 Ticket Status Velocity & Bottleneck Analysis</div>
+          <div style="font-size:12px;color:#7a9aaa">Time spent per status · Status transition frequency · Requestor delay analysis · Filter by regional, community, GM, or submitter</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="runVelocityReport()" style="white-space:nowrap">▶ Run Report</button>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--rise-pale);border-radius:var(--radius-sm)">
+        <select id="vel-filter-regional" style="font-size:12px;min-width:140px">
+          <option value="">All Regionals</option>
+        </select>
+        <select id="vel-filter-community" style="font-size:12px;min-width:140px">
+          <option value="">All Communities</option>
+          <option>Nocatee</option><option>Glen Kernan Park</option><option>Viera</option>
+          <option>Florence Villa</option><option>Sereno</option><option>Doro High Rise</option>
+          <option>Beacon / Poplar Hall</option><option>Maple Hall (NJIT)</option>
+          <option>Flagler</option><option>St. Augustine</option><option>Portfolio-Wide</option>
+        </select>
+        <select id="vel-filter-submitter" style="font-size:12px;min-width:140px">
+          <option value="">All Submitters</option>
+        </select>
+        <select id="vel-filter-status" style="font-size:12px;min-width:160px">
+          <option value="">All Statuses</option>
+          <option value="new">New</option>
+          <option value="in_progress">In Progress</option>
+          <option value="in_review">In Review</option>
+          <option value="awaiting_approval">Awaiting Approval</option>
+          <option value="awaiting_submitter">Awaiting Submitter Review</option>
+          <option value="awaiting_pex_funds">Awaiting PEX Funds</option>
+          <option value="complete">Complete</option>
+        </select>
+        <select id="vel-filter-period" style="font-size:12px;min-width:120px">
+          <option value="30">Last 30 Days</option>
+          <option value="60">Last 60 Days</option>
+          <option value="90">Last 90 Days</option>
+          <option value="180">Last 6 Months</option>
+          <option value="0">All Time</option>
+        </select>
+      </div>
+
+      <!-- VELOCITY RESULTS -->
+      <div id="vel-report-output">
+        <div style="text-align:center;padding:40px;color:#7a9aaa;font-size:13px">
+          Configure filters above and click <strong>Run Report</strong> to analyze ticket status flow and bottlenecks.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2381,12 +2436,17 @@ table.dt tbody tr:hover td{background:#f7fbfd}.rn{color:var(--muted);font-size:1
             <option value="in_review">In Review</option>
             <option value="awaiting_approval">Awaiting Approval</option>
             <option value="awaiting_submitter">Awaiting Submitter Review</option>
+            <option value="awaiting_pex_funds">Awaiting PEX Funds Confirmation</option>
             <option value="complete">Complete</option>
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
         <div style="display:flex;align-items:flex-end;gap:6px">
           <button class="btn btn-primary btn-sm" onclick="saveTicketChanges()">Save Changes</button>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px;min-width:70px">
+          <label style="font-size:11px;font-weight:600;color:#7a9aaa;text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:4px">Days Open</label>
+          <div id="modal-days-open" style="font-size:22px;font-weight:800;color:var(--rise-dark);line-height:1">—</div>
         </div>
       </div>
 
@@ -3045,6 +3105,7 @@ async function renderLiveTickets() {
     in_review:         '<span class="badge badge-review">👁 In Review</span>',
     awaiting_approval: '<span class="badge badge-approval">⏳ Awaiting Approval</span>',
     awaiting_submitter:'<span class="badge badge-urgent" style="background:#fff4e0;color:#7a4400;border:1px solid #fad897">↩ Awaiting Submitter</span>',
+    awaiting_pex_funds:'<span class="badge badge-urgent" style="background:#f0e6ff;color:#5b1fa8;border:1px solid #c9a8f5">💳 Awaiting PEX Funds</span>',
     complete:          '<span class="badge badge-complete">✓ Complete</span>',
     cancelled:         '<span class="badge badge-urgent">✕ Cancelled</span>',
   };
@@ -3061,7 +3122,7 @@ async function renderLiveTickets() {
     if (!el) return;
     const rows = idx === 1 ? activeTickets.slice(0,8) : tickets;
     if (rows.length === 0) {
-      el.innerHTML = `<tr><td colspan="${isPrivileged ? 11 : 10}" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>`;
+      el.innerHTML = `<tr><td colspan="${isPrivileged ? 12 : 11}" style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">No tickets yet — submit your first request using the New Request tab.</td></tr>`;
       return;
     }
     el.innerHTML = rows.map(t => {
@@ -3070,13 +3131,21 @@ async function renderLiveTickets() {
       const due = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
       const dueStyle = t.due_date && new Date(t.due_date) < new Date() ? 'color:#e85c4a;font-weight:600' : '';
       const cost = t.estimated_cost ? '$' + parseFloat(t.estimated_cost).toLocaleString() : '—';
+      // Days open calculation
+      const openedDate = t.opened_at || t.created_at;
+      const closeDate = t.closed_at ? new Date(t.closed_at) : new Date();
+      const daysOpen = openedDate ? Math.floor((closeDate - new Date(openedDate)) / 86400000) : null;
+      const daysOpenLabel = daysOpen !== null
+        ? `<span style="font-weight:700;color:${daysOpen >= 14 ? '#e85c4a' : daysOpen >= 7 ? '#d47b1a' : '#2a9d6e'}">${daysOpen}d</span>`
+        : '—';
       const deleteBtn = isPrivileged
         ? `<td><button class="btn btn-reject btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();deleteTicket('${t.id}','${t.ticket_number||t.id}')">Delete</button></td>`
         : '';
       // Timer status
-      const stalled = ['awaiting_approval','awaiting_submitter'].includes(t.status);
+      const stalled = ['awaiting_approval','awaiting_submitter','awaiting_pex_funds'].includes(t.status);
       const overdue  = t.due_date && new Date(t.due_date) < new Date() && !['complete','cancelled'].includes(t.status);
       const timerLabel = t.status === 'complete' ? '<span style="color:#7a9aaa">Closed</span>'
+        : t.status === 'awaiting_pex_funds' ? '<span style="color:#5b1fa8;font-weight:600">⏸ PEX Hold</span>'
         : stalled ? '<span style="color:#d47b1a;font-weight:600">⏸ Stalled</span>'
         : overdue ? '<span style="color:#e85c4a;font-weight:600">🔴 Overdue</span>'
         : '<span style="color:#2a9d6e;font-weight:600">▶ Active</span>';
@@ -3091,6 +3160,7 @@ async function renderLiveTickets() {
         <td style="color:#7a9aaa;font-size:12px">${t.created_at ? new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
         <td style="${dueStyle}">${due}</td>
         <td style="font-size:12px">${cost}</td>
+        <td style="font-size:12px;text-align:center">${daysOpenLabel}</td>
         <td style="font-size:11px">${timerLabel}</td>
         ${deleteBtn}
       </tr>`;
@@ -3426,6 +3496,20 @@ function openTicket(id, dbId) {
     document.getElementById('modal-ticket-id').textContent = t.ticket_number || id;
     document.getElementById('modal-ticket-meta').textContent = [t.title, t.property_name, t.request_type, assigneeName].filter(Boolean).join(' · ');
 
+    // Days open
+    const daysOpenEl = document.getElementById('modal-days-open');
+    if (daysOpenEl) {
+      const openedDate = t.opened_at || t.created_at;
+      const closeDate = t.closed_at ? new Date(t.closed_at) : new Date();
+      const daysOpen = openedDate ? Math.floor((closeDate - new Date(openedDate)) / 86400000) : null;
+      if (daysOpen !== null) {
+        daysOpenEl.textContent = daysOpen + 'd';
+        daysOpenEl.style.color = daysOpen >= 14 ? '#e85c4a' : daysOpen >= 7 ? '#d47b1a' : 'var(--rise-dark)';
+      } else {
+        daysOpenEl.textContent = '—';
+      }
+    }
+
     // Populate manual controls
     if (typeof populateModalControls === 'function') populateModalControls(t);
 
@@ -3437,6 +3521,8 @@ function openTicket(id, dbId) {
         in_progress:       [{label:'Submitted',done:true},{label:'In Progress',active:true},{label:'Review',pending:true},{label:'Complete',pending:true}],
         in_review:         [{label:'Submitted',done:true},{label:'In Progress',done:true},{label:'Review',active:true},{label:'Complete',pending:true}],
         awaiting_approval: [{label:'Submitted',done:true},{label:'Created',done:true},{label:'Review',done:true},{label:'Approval',active:true},{label:'Complete',pending:true}],
+        awaiting_submitter:[{label:'Submitted',done:true},{label:'In Progress',done:true},{label:'⏸ Submitter Action',active:true},{label:'Review',pending:true},{label:'Complete',pending:true}],
+        awaiting_pex_funds:[{label:'Submitted',done:true},{label:'In Progress',done:true},{label:'⏸ PEX Hold',active:true},{label:'Approval',pending:true},{label:'Complete',pending:true}],
         complete:          [{label:'Submitted',done:true},{label:'Created',done:true},{label:'Approved',done:true},{label:'Complete',done:true}],
       };
       const steps = statusSteps[t.status] || statusSteps['new'];
@@ -3616,7 +3702,7 @@ async function updateRouting() {
     if (window.DB) {
       const { data: activeTix } = await window.DB.supabaseClient()
         .from('tickets').select('assigned_to')
-        .in('status', ['new','in_progress','in_review','awaiting_approval']);
+        .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_pex_funds']);
       (activeTix||[]).forEach(t => { if (t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to]||0)+1; });
     }
 
@@ -4009,7 +4095,7 @@ async function submitTicket() {
         const { data: activeCounts } = await window.DB.supabaseClient()
           .from('tickets')
           .select('assigned_to')
-          .in('status', ['new','in_progress','in_review','awaiting_approval']);
+          .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_pex_funds']);
 
         const countMap = {};
         (activeCounts || []).forEach(t => {
@@ -4205,6 +4291,10 @@ async function saveTicketChanges() {
         }
       }
     }
+    // PEX funds hold notification
+    if (status === 'awaiting_pex_funds') {
+      showToast('⏸ Ticket placed on PEX Funds hold — timer paused until funds confirmed', 'info');
+    }
     const assigneeName = document.getElementById('modal-assign-select').selectedOptions[0]?.text || '';
     await window.DB.logTicketEvent(dbId, 'system', actorName,
       `${actorName} updated — status: ${status}${assignTo ? ' · assigned to: ' + assigneeName.split('·')[0].trim() : ''}`, {});
@@ -4249,7 +4339,7 @@ async function renderTeamMetrics() {
   const tickets = await window.DB.loadTickets();
   const closed = tickets.filter(t => t.status === 'complete' && t.closed_at >= since);
   const open   = tickets.filter(t => !['complete','cancelled'].includes(t.status));
-  const stalled = tickets.filter(t => ['awaiting_approval','awaiting_submitter'].includes(t.status));
+  const stalled = tickets.filter(t => ['awaiting_approval','awaiting_submitter','awaiting_pex_funds'].includes(t.status));
 
   // KPI strip
   document.getElementById('m-closed').textContent = closed.length || '0';
@@ -4410,6 +4500,7 @@ function filterStaffTickets(q) {
   const statusMap = {
     new: '🆕 New', in_progress: '🔄 In Progress', in_review: '👁 In Review',
     awaiting_approval: '⏳ Awaiting Approval', awaiting_submitter: '↩ Awaiting Submitter',
+    awaiting_pex_funds: '💳 Awaiting PEX Funds',
     complete: '✓ Complete', cancelled: '✕ Cancelled'
   };
   const filtered = q
@@ -4417,19 +4508,26 @@ function filterStaffTickets(q) {
     : staffDashboardTickets;
 
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#7a9aaa">No tickets found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#7a9aaa">No tickets found.</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(t => {
     const due = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const dueStyle = t.due_date && new Date(t.due_date) < new Date() ? 'color:#e85c4a;font-weight:600' : '';
     const timerStatus = getTimerStatus(t);
+    const openedDate = t.opened_at || t.created_at;
+    const closeDate = t.closed_at ? new Date(t.closed_at) : new Date();
+    const daysOpen = openedDate ? Math.floor((closeDate - new Date(openedDate)) / 86400000) : null;
+    const daysOpenLabel = daysOpen !== null
+      ? `<span style="font-weight:700;color:${daysOpen >= 14 ? '#e85c4a' : daysOpen >= 7 ? '#d47b1a' : '#2a9d6e'}">${daysOpen}d</span>`
+      : '—';
     return `<tr onclick="openTicket('${t.ticket_number||t.id}','${t.id}')" style="cursor:pointer">
       <td><span class="ticket-id">${t.ticket_number||'—'}</span></td>
       <td><span class="ticket-title">${t.title}</span></td>
       <td><span class="ticket-prop">${t.property_name||'—'}</span></td>
       <td><span class="badge ${getStatusBadge(t.status)}">${statusMap[t.status]||t.status}</span></td>
       <td style="${dueStyle}">${due}</td>
+      <td style="font-size:12px;text-align:center">${daysOpenLabel}</td>
       <td><span style="font-size:11px;font-weight:600;color:${timerStatus.color}">${timerStatus.label}</span></td>
     </tr>`;
   }).join('');
@@ -4438,12 +4536,14 @@ function filterStaffTickets(q) {
 function getStatusBadge(status) {
   const map = { new:'badge-new', in_progress:'badge-inprogress', in_review:'badge-review',
     awaiting_approval:'badge-approval', awaiting_submitter:'badge-urgent',
+    awaiting_pex_funds:'badge-urgent',
     complete:'badge-complete', cancelled:'badge-urgent' };
   return map[status] || 'badge-new';
 }
 
 function getTimerStatus(t) {
   if (['complete','cancelled'].includes(t.status)) return { label: 'Closed', color: '#7a9aaa' };
+  if (t.status === 'awaiting_pex_funds') return { label: '⏸ PEX Hold', color: '#5b1fa8' };
   if (['awaiting_approval','awaiting_submitter'].includes(t.status)) return { label: '⏸ Stalled', color: '#d47b1a' };
   if (t.due_date && new Date(t.due_date) < new Date()) return { label: '🔴 Overdue', color: '#e85c4a' };
   return { label: '▶ Active', color: '#2a9d6e' };
@@ -4548,7 +4648,7 @@ async function executeBulkReassign() {
   // Pre-fetch active counts for load balancing
   const { data: activeCounts } = await window.DB.supabaseClient()
     .from('tickets').select('assigned_to')
-    .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter']);
+    .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter','awaiting_pex_funds']);
   const cMap = {};
   (activeCounts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to] = (cMap[tc.assigned_to]||0)+1; });
 
@@ -4746,11 +4846,14 @@ function filterTickets(status) {
     const badgeCell = row.querySelector('.badge');
     const badgeText = badgeCell ? badgeCell.textContent.trim() : '';
     const match =
-      (status === 'New'              && badgeText.includes('New')) ||
-      (status === 'In Progress'      && badgeText.includes('Progress')) ||
-      (status === 'In Review'        && badgeText.includes('Review')) ||
-      (status === 'Awaiting Approval'&& badgeText.includes('Approval')) ||
-      (status === 'Complete'         && badgeText.includes('Complete'));
+      (status === 'New'                && badgeText.includes('New')) ||
+      (status === 'In Progress'        && badgeText.includes('Progress')) ||
+      (status === 'In Review'          && badgeText.includes('Review')) ||
+      (status === 'Awaiting Approval'  && badgeText.includes('Approval')) ||
+      (status === 'Awaiting Submitter' && badgeText.includes('Submitter')) ||
+      (status === 'Awaiting PEX Funds' && badgeText.includes('PEX')) ||
+      (status === 'Complete'           && badgeText.includes('Complete')) ||
+      (status === 'Cancelled'          && badgeText.includes('Cancelled'));
     row.style.display = match ? '' : 'none';
   });
 }
@@ -5924,7 +6027,7 @@ async function renderTeamCards() {
   try {
     const { data: activeTix } = await window.DB.supabaseClient()
       .from('tickets').select('assigned_to')
-      .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter']);
+      .in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_submitter','awaiting_pex_funds']);
     (activeTix||[]).forEach(t => { if(t.assigned_to) countMap[t.assigned_to] = (countMap[t.assigned_to]||0)+1; });
   } catch(e) {}
 
@@ -6181,7 +6284,7 @@ async function deleteMember() {
             .eq('status','active').contains('skills', [requiredSkill]).neq('id', dbId);
           if (eligible?.length) {
             const { data: counts } = await window.DB.supabaseClient()
-              .from('tickets').select('assigned_to').in('status', ['new','in_progress','in_review','awaiting_approval']);
+              .from('tickets').select('assigned_to').in('status', ['new','in_progress','in_review','awaiting_approval','awaiting_pex_funds']);
             const cMap = {};
             (counts||[]).forEach(tc => { if(tc.assigned_to) cMap[tc.assigned_to]=(cMap[tc.assigned_to]||0)+1; });
             eligible.sort((a,b) => (cMap[a.id]||0)-(cMap[b.id]||0));
@@ -6612,12 +6715,12 @@ function showTab(tabId) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const page = document.getElementById('page-' + tabId);
   if (page) page.classList.add('active');
-  const tabMap = {'dashboard':0,'new-request':1,'tickets':2,'approvals':3,'lead-sources':4,'metrics':5,'reporting':6,'bonus':7,'marketing':8,'settings':9};
+  const tabMap = {'dashboard':0,'new-request':1,'tickets':2,'approvals':3,'lead-sources':4,'metrics':5,'reporting':6,'bonus':7,'settings':8,'marketing':9};
   const tabs = document.querySelectorAll('.nav-tab');
   if (tabMap[tabId] !== undefined && tabs[tabMap[tabId]]) tabs[tabMap[tabId]].classList.add('active');
   if (tabId === 'lead-sources') initLeadSources();
   if (tabId === 'settings') showSettingsTab('team');
-  if (tabId === 'reporting') { loadChartJS(() => { renderReportHistory(); renderReportCharts(); updateReportKPIs(); }); }
+  if (tabId === 'reporting') { loadChartJS(() => { renderReportHistory(); renderReportCharts(); updateReportKPIs(); }); window.DB && window.DB.loadTickets().then(t => populateVelocityFilters(t)); }
   if (tabId === 'bonus') checkBonusAccess();
   if (tabId === 'approvals' && window.renderLiveApprovals) window.renderLiveApprovals();
   if (tabId === 'tickets' && window.renderLiveTickets) window.renderLiveTickets();
@@ -6917,6 +7020,383 @@ function loadChartJS(cb) {
   s.onload = cb;
   document.head.appendChild(s);
 }
+
+// =============================================
+// STATUS VELOCITY & BOTTLENECK REPORT
+// =============================================
+
+const STALL_STATUSES = ['awaiting_approval','awaiting_submitter','awaiting_pex_funds'];
+const ALL_STATUSES = ['new','in_progress','in_review','awaiting_approval','awaiting_submitter','awaiting_pex_funds','complete','cancelled'];
+const STATUS_LABELS = {
+  new:'New', in_progress:'In Progress', in_review:'In Review',
+  awaiting_approval:'Awaiting Approval', awaiting_submitter:'Awaiting Submitter',
+  awaiting_pex_funds:'Awaiting PEX Funds', complete:'Complete', cancelled:'Cancelled'
+};
+
+async function populateVelocityFilters(tickets) {
+  // Regionals
+  const regionals = [...new Set((tickets||[]).map(t => {
+    const p = (propertiesData||[]).find(x => x.name === t.property_name);
+    return p?.regional || null;
+  }).filter(Boolean))].sort();
+  const regSel = document.getElementById('vel-filter-regional');
+  if (regSel) {
+    const cur = regSel.value;
+    regSel.innerHTML = '<option value="">All Regionals</option>' + regionals.map(r => `<option value="${r}">${r}</option>`).join('');
+    if (cur) regSel.value = cur;
+  }
+  // Submitters
+  const submitters = [...new Set((tickets||[]).map(t => t.submitted_by_name).filter(Boolean))].sort();
+  const subSel = document.getElementById('vel-filter-submitter');
+  if (subSel) {
+    const cur = subSel.value;
+    subSel.innerHTML = '<option value="">All Submitters</option>' + submitters.map(s => `<option value="${s}">${s}</option>`).join('');
+    if (cur) subSel.value = cur;
+  }
+}
+
+// Parse status transitions from ticket_events
+function parseStatusTransitions(events) {
+  // Returns array of {from, to, at} objects derived from event log
+  const transitions = [];
+  let lastStatus = null;
+  let lastAt = null;
+  (events || []).forEach(e => {
+    // The body contains patterns like "status: in_progress" or "status: awaiting_approval"
+    const match = e.body && e.body.match(/status:\s*([a-z_]+)/i);
+    if (match) {
+      const toStatus = match[1];
+      if (lastStatus && toStatus !== lastStatus) {
+        transitions.push({ from: lastStatus, to: toStatus, at: e.created_at, fromAt: lastAt });
+      }
+      lastStatus = toStatus;
+      lastAt = e.created_at;
+    }
+  });
+  return transitions;
+}
+
+// Calculate time spent in each status for a single ticket using its events
+function calcStatusDurations(ticket, events) {
+  const durations = {}; // { status: totalMs }
+  ALL_STATUSES.forEach(s => durations[s] = 0);
+
+  // Build a timeline of status changes from events
+  const statusChanges = [];
+  // Start: ticket opened_at with status 'new'
+  statusChanges.push({ status: 'new', at: new Date(ticket.opened_at || ticket.created_at) });
+
+  (events || []).forEach(e => {
+    const match = e.body && e.body.match(/status:\s*([a-z_]+)/i);
+    if (match) {
+      statusChanges.push({ status: match[1], at: new Date(e.created_at) });
+    }
+  });
+
+  // Close: use closed_at if complete/cancelled, else now
+  const endAt = (ticket.status === 'complete' || ticket.status === 'cancelled') && ticket.closed_at
+    ? new Date(ticket.closed_at)
+    : new Date();
+
+  for (let i = 0; i < statusChanges.length; i++) {
+    const cur = statusChanges[i];
+    const next = statusChanges[i + 1] ? statusChanges[i + 1].at : endAt;
+    const ms = Math.max(0, next - cur.at);
+    if (durations[cur.status] !== undefined) durations[cur.status] += ms;
+    else durations[cur.status] = ms;
+  }
+
+  return durations;
+}
+
+function msToHuman(ms) {
+  if (!ms || ms <= 0) return '—';
+  const hours = Math.floor(ms / 3600000);
+  const days = Math.floor(hours / 24);
+  const hrs = hours % 24;
+  if (days >= 1) return days + 'd ' + (hrs > 0 ? hrs + 'h' : '');
+  return hours + 'h';
+}
+
+function daysFromMs(ms) {
+  if (!ms || ms <= 0) return 0;
+  return Math.round(ms / 86400000 * 10) / 10;
+}
+
+async function runVelocityReport() {
+  const out = document.getElementById('vel-report-output');
+  out.innerHTML = '<div style="text-align:center;padding:32px;color:#7a9aaa;font-size:13px">⏳ Analyzing ticket status flow…</div>';
+
+  const filterRegional  = document.getElementById('vel-filter-regional').value;
+  const filterCommunity = document.getElementById('vel-filter-community').value;
+  const filterSubmitter = document.getElementById('vel-filter-submitter').value;
+  const filterStatus    = document.getElementById('vel-filter-status').value;
+  const filterDays      = parseInt(document.getElementById('vel-filter-period').value) || 0;
+
+  let tickets = await window.DB.loadTickets();
+  await populateVelocityFilters(tickets);
+
+  // Period filter
+  if (filterDays > 0) {
+    const cutoff = new Date(Date.now() - filterDays * 86400000);
+    tickets = tickets.filter(t => new Date(t.created_at) >= cutoff);
+  }
+  // Community
+  if (filterCommunity) tickets = tickets.filter(t => t.property_name === filterCommunity);
+  // Submitter
+  if (filterSubmitter) tickets = tickets.filter(t => t.submitted_by_name === filterSubmitter);
+  // Regional (match via propertiesData)
+  if (filterRegional) {
+    tickets = tickets.filter(t => {
+      const p = (propertiesData||[]).find(x => x.name === t.property_name);
+      return p?.regional === filterRegional;
+    });
+  }
+  // Status filter (tickets that touched this status)
+  // We'll apply this after events are loaded below
+
+  if (!tickets.length) {
+    out.innerHTML = '<div style="text-align:center;padding:40px;color:#7a9aaa;font-size:13px">No tickets match the selected filters.</div>';
+    return;
+  }
+
+  // Load events for all matched tickets
+  const sb = window.DB.supabaseClient();
+  const ticketIds = tickets.map(t => t.id);
+  const { data: allEvents } = await sb.from('ticket_events')
+    .select('*').in('ticket_id', ticketIds).order('created_at');
+  const eventsByTicket = {};
+  (allEvents || []).forEach(e => {
+    if (!eventsByTicket[e.ticket_id]) eventsByTicket[e.ticket_id] = [];
+    eventsByTicket[e.ticket_id].push(e);
+  });
+
+  // Compute per-ticket durations and transition counts
+  const statusTotalMs = {};
+  const statusTicketCount = {};  // how many tickets touched this status
+  const transitionMatrix = {};   // from->to count
+  ALL_STATUSES.forEach(s => { statusTotalMs[s] = 0; statusTicketCount[s] = 0; });
+
+  // Per-submitter delay data
+  const submitterDelay = {}; // name -> { totalMs, count, tickets: [] }
+
+  let filteredTickets = tickets;
+  if (filterStatus) {
+    // Only tickets that have touched the filtered status
+    filteredTickets = tickets.filter(t => {
+      const evts = eventsByTicket[t.id] || [];
+      const touchedStatuses = new Set(['new']);
+      evts.forEach(e => {
+        const m = e.body && e.body.match(/status:\s*([a-z_]+)/i);
+        if (m) touchedStatuses.add(m[1]);
+      });
+      return touchedStatuses.has(filterStatus) || t.status === filterStatus;
+    });
+  }
+
+  filteredTickets.forEach(t => {
+    const evts = eventsByTicket[t.id] || [];
+    const durations = calcStatusDurations(t, evts);
+    const transitions = parseStatusTransitions(evts);
+
+    // Accumulate
+    ALL_STATUSES.forEach(s => {
+      if (durations[s] > 0) {
+        statusTotalMs[s] += durations[s];
+        statusTicketCount[s]++;
+      }
+    });
+
+    // Transition matrix
+    transitions.forEach(tr => {
+      const key = (tr.from || 'unknown') + '→' + (tr.to || 'unknown');
+      transitionMatrix[key] = (transitionMatrix[key] || 0) + 1;
+    });
+
+    // Submitter delay: sum of time in stall statuses
+    const stallMs = STALL_STATUSES.reduce((sum, s) => sum + (durations[s] || 0), 0);
+    const submitter = t.submitted_by_name || t.submitted_by_email || 'Unknown';
+    if (!submitterDelay[submitter]) submitterDelay[submitter] = { totalMs: 0, stallMs: 0, count: 0, tickets: [] };
+    const openedDate = t.opened_at || t.created_at;
+    const closeDate = t.closed_at ? new Date(t.closed_at) : new Date();
+    const daysOpen = openedDate ? Math.floor((closeDate - new Date(openedDate)) / 86400000) : 0;
+    submitterDelay[submitter].totalMs += (closeDate - new Date(openedDate));
+    submitterDelay[submitter].stallMs += stallMs;
+    submitterDelay[submitter].count++;
+    submitterDelay[submitter].tickets.push({
+      id: t.ticket_number || t.id, title: t.title,
+      property: t.property_name || '—', status: t.status,
+      daysOpen, stallDays: daysFromMs(stallMs)
+    });
+  });
+
+  // Sort submitters by total stall time desc
+  const submitterRows = Object.entries(submitterDelay)
+    .map(([name, d]) => ({ name, ...d, avgDays: daysFromMs(d.totalMs / Math.max(d.count,1)), avgStallDays: daysFromMs(d.stallMs / Math.max(d.count,1)) }))
+    .sort((a, b) => b.stallMs - a.stallMs);
+
+  // Sort transitions by frequency
+  const topTransitions = Object.entries(transitionMatrix)
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+
+  // Render
+  const activeStatuses = ALL_STATUSES.filter(s => statusTicketCount[s] > 0);
+  const maxMs = Math.max(...activeStatuses.map(s => statusTotalMs[s]), 1);
+
+  out.innerHTML = `
+    <!-- KPI STRIP -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-label">Tickets Analyzed</div>
+        <div class="stat-value" style="font-size:28px">${filteredTickets.length}</div>
+        <div class="stat-sub">matching filters</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Days to Close</div>
+        <div class="stat-value" style="font-size:28px">${
+          (() => {
+            const closed = filteredTickets.filter(t => t.closed_at && t.created_at);
+            if (!closed.length) return '—';
+            const avg = closed.reduce((s, t) => s + (new Date(t.closed_at) - new Date(t.created_at)), 0) / closed.length;
+            return daysFromMs(avg) + 'd';
+          })()
+        }</div>
+        <div class="stat-sub">closed tickets only</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top Bottleneck Status</div>
+        <div class="stat-value" style="font-size:14px;line-height:1.3">${
+          activeStatuses.length ? (STATUS_LABELS[activeStatuses.reduce((a, b) => statusTotalMs[a] >= statusTotalMs[b] ? a : b)] || '—') : '—'
+        }</div>
+        <div class="stat-sub">most cumulative time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Stall Time (All PEX/Approval)</div>
+        <div class="stat-value" style="font-size:28px">${
+          msToHuman(STALL_STATUSES.reduce((s, st) => s + (statusTotalMs[st] || 0), 0))
+        }</div>
+        <div class="stat-sub">across all tickets</div>
+      </div>
+    </div>
+
+    <!-- TIME PER STATUS -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--rise-dark);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">⏱ Average Time Spent Per Status</div>
+      <table class="lead-table">
+        <thead><tr><th>Status</th><th>Tickets Touched</th><th>Total Time</th><th>Avg per Ticket</th><th>% of Max</th><th>Stall?</th></tr></thead>
+        <tbody>
+          ${activeStatuses.map(s => {
+            const avg = statusTicketCount[s] > 0 ? statusTotalMs[s] / statusTicketCount[s] : 0;
+            const pct = Math.round((statusTotalMs[s] / maxMs) * 100);
+            const isStall = STALL_STATUSES.includes(s);
+            return `<tr>
+              <td><strong style="color:${isStall ? '#d47b1a' : 'var(--rise-dark)'}">${STATUS_LABELS[s] || s}</strong></td>
+              <td style="text-align:center">${statusTicketCount[s]}</td>
+              <td style="font-weight:600">${msToHuman(statusTotalMs[s])}</td>
+              <td>${msToHuman(avg)}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:8px;background:#e8eff2;border-radius:4px;min-width:80px">
+                    <div style="height:100%;width:${pct}%;background:${isStall ? '#d47b1a' : 'var(--rise-dark)'};border-radius:4px"></div>
+                  </div>
+                  <span style="font-size:11px;color:#7a9aaa;min-width:28px">${pct}%</span>
+                </div>
+              </td>
+              <td style="text-align:center">${isStall ? '<span style="color:#d47b1a;font-weight:700">⏸ Yes</span>' : '<span style="color:#7a9aaa">—</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TRANSITION FREQUENCY -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--rise-dark);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">🔀 Status Transition Frequency (Top ${topTransitions.length})</div>
+      ${topTransitions.length === 0
+        ? '<div style="color:#7a9aaa;font-size:13px;padding:16px 0">No status transition data available — events are logged as status changes occur.</div>'
+        : `<table class="lead-table">
+        <thead><tr><th>From Status</th><th>→ To Status</th><th>Times Occurred</th><th>Frequency Bar</th><th>Note</th></tr></thead>
+        <tbody>
+          ${topTransitions.map(tr => {
+            const [from, to] = tr.key.split('→');
+            const isRegression = ALL_STATUSES.indexOf(to) < ALL_STATUSES.indexOf(from);
+            const maxCount = topTransitions[0].count || 1;
+            const pct = Math.round((tr.count / maxCount) * 100);
+            return `<tr>
+              <td>${STATUS_LABELS[from] || from}</td>
+              <td><strong style="color:${isRegression ? '#e85c4a' : 'var(--rise-dark)'}">${STATUS_LABELS[to] || to}</strong></td>
+              <td style="text-align:center;font-weight:700">${tr.count}×</td>
+              <td>
+                <div style="height:8px;background:#e8eff2;border-radius:4px;min-width:100px">
+                  <div style="height:100%;width:${pct}%;background:${isRegression ? '#e85c4a' : '#6ba2b8'};border-radius:4px"></div>
+                </div>
+              </td>
+              <td style="font-size:11px;color:${isRegression ? '#e85c4a' : '#7a9aaa'}">${isRegression ? '⚠ Backward move' : '→ Forward'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <!-- SUBMITTER / REQUESTOR DELAY TABLE -->
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--rise-dark);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">🏢 Requestor / Submitter Delay Analysis</div>
+      <div style="font-size:12px;color:#7a9aaa;margin-bottom:12px">Sorted by total stall time caused per submitter — highest delay at top. Stall time = time tickets spent in Awaiting Approval, Awaiting Submitter, or Awaiting PEX Funds status.</div>
+      <table class="lead-table">
+        <thead><tr><th>Submitter / Requestor</th><th>Tickets</th><th>Avg Days Open</th><th>Total Stall Time</th><th>Avg Stall/Ticket</th><th>Stall Bar</th><th>Longest Open</th></tr></thead>
+        <tbody>
+          ${submitterRows.length === 0
+            ? `<tr><td colspan="7" style="text-align:center;padding:20px;color:#7a9aaa">No submitter data found.</td></tr>`
+            : submitterRows.map((r, i) => {
+                const maxStall = submitterRows[0].stallMs || 1;
+                const pct = Math.round((r.stallMs / maxStall) * 100);
+                const worstTicket = [...r.tickets].sort((a,b) => b.daysOpen - a.daysOpen)[0];
+                const isTopDelay = i === 0 && r.stallMs > 0;
+                return `<tr style="${isTopDelay ? 'background:#fff8f0' : ''}">
+                  <td>
+                    <strong style="color:${isTopDelay ? '#d47b1a' : 'var(--rise-dark)'}">${isTopDelay ? '🔴 ' : ''}${r.name}</strong>
+                    ${isTopDelay ? '<div style="font-size:10px;color:#d47b1a;font-weight:600">Highest delay contributor</div>' : ''}
+                  </td>
+                  <td style="text-align:center">${r.count}</td>
+                  <td style="font-weight:600">${r.avgDays}d</td>
+                  <td style="font-weight:700;color:${r.stallMs > 86400000*3 ? '#e85c4a' : r.stallMs > 86400000 ? '#d47b1a' : '#2a9d6e'}">${msToHuman(r.stallMs)}</td>
+                  <td>${r.avgStallDays > 0 ? r.avgStallDays + 'd' : '—'}</td>
+                  <td>
+                    <div style="height:8px;background:#e8eff2;border-radius:4px;min-width:80px">
+                      <div style="height:100%;width:${pct}%;background:${pct > 75 ? '#e85c4a' : pct > 40 ? '#d47b1a' : '#6ba2b8'};border-radius:4px"></div>
+                    </div>
+                  </td>
+                  <td style="font-size:11px">
+                    ${worstTicket
+                      ? `<span style="color:var(--rise-dark);font-weight:600">${worstTicket.id}</span>
+                         <span style="color:#7a9aaa"> · ${worstTicket.daysOpen}d open</span>`
+                      : '—'}
+                  </td>
+                </tr>
+                <!-- Expandable ticket list -->
+                <tr style="background:#f8fbfc">
+                  <td colspan="7" style="padding:4px 16px 8px">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px">
+                      ${r.tickets.slice(0,8).map(tk =>
+                        `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${tk.stallDays > 2 ? '#fff4e0' : '#e8f5ee'};color:${tk.stallDays > 2 ? '#7a4400' : '#1a5c3a'};border:1px solid ${tk.stallDays > 2 ? '#fad897' : '#a8dfc0'}">
+                          ${tk.id} · ${tk.daysOpen}d open${tk.stallDays > 0 ? ' · ⏸ ' + tk.stallDays + 'd stalled' : ''}
+                        </span>`
+                      ).join('')}
+                      ${r.tickets.length > 8 ? `<span style="font-size:10px;color:#7a9aaa">+${r.tickets.length - 8} more</span>` : ''}
+                    </div>
+                  </td>
+                </tr>`;
+              }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// Populate filters when reporting tab loads
+
 
 // =============================================
 // BONUS ENGINE
@@ -8396,19 +8876,6 @@ async function resetPwd(uname){
 function mktInit(){
   if(window._mktInitialized){renderAll();return;}
   window._mktInitialized=true;
-  // Auto-login with admin credentials when inside MCC (user already authenticated)
-  if(!window._mktLoggedIn){
-    window._mktAutoLogin=true;
-    setTimeout(function(){
-      if(!window._mktLoggedIn&&typeof doLogin==='function'){
-        var luEl=document.getElementById('lu');
-        var lpEl=document.getElementById('lp');
-        if(luEl)luEl.value='jac';
-        if(lpEl)lpEl.value='rise2026';
-        doLogin();
-      }
-    },100);
-  }
   var lp=document.getElementById('lp');
   if(lp)lp.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
   var alr=document.getElementById('al-rel');
